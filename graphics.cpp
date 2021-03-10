@@ -84,6 +84,7 @@ void Graphics::add_line(const double data[(WINDOW_SAMPLES / 2) + 1], const doubl
 
 void Graphics::graph_spectrogram(const double data[(WINDOW_SAMPLES / 2) + 1], const double max_value, const int n_data_points,
                                  const std::vector<int> &peaks, const double envelope[(WINDOW_SAMPLES / 2) + 1]) {
+    // TODO: Remove this memory leak
     static SDL_Texture *graf = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, res_x, res_y);
     SDL_SetRenderTarget(renderer, graf);
     SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xff);
