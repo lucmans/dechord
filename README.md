@@ -1,3 +1,5 @@
+(view this file in normal text editor; whitespace characters don't seem to work properly)
+
 Before compiling, install FFTW3 and SDL2 libraries.
 
 On Ubuntu:
