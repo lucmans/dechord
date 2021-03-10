@@ -2,17 +2,18 @@
 
 Before compiling, install FFTW3 and SDL2 libraries.
 
+Note that this project is just a prototype. It runs very inefficient and has some small memory leaks. These "mistakes" are marked with a TODO comment in the code.
+
 On Ubuntu:
     sudo apt install libsdl2-dev libfftw3-dev
 On Arch:
     sudo pacman -S sdl2 fftw3
 Note that SDL>2.0.5 is required for recording audio
 
-Compile command: make all
-Execute: ./fourier
+To compile, run just run make
+To run, use ./fourier
 
 Information about CLI arguments can be obtained through ./fourier -h
-
 
 
 Usage instructions:
@@ -28,5 +29,6 @@ Code structure:
     config.h: Contains all configuration globals, such as sampling rate and samples per Fourier transform window
     main.cpp: Initializes libraries and devices
     fourier.cpp: Performs actual Fourier analysis and contains related function. For now also handles input.
-    graphics.cpp: Handles the Window with the waterfall plot of frequency domain
+    graphics.cpp: Handles the Window which can show a waterfall plot, but now only shows the spectrum (green), rolling Gaussian mean (red) and peaks (blue)
+    find_peaks.cpp: Mainly contains code for finding peaks in the spectrum, but also contains code for peak interpolation and calculating the rolling Gaussian mean
     gensound.cpp: Contains functions for generating test tones
