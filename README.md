@@ -6,8 +6,8 @@ On Arch:
     sudo pacman -S sdl2 fftw3
 Note that SDL>2.0.5 is required for recording audio
 
-To compile, run just run make
-To run, use ./fourier
+Compile command: make all
+Execute: ./fourier
 
 Information about CLI arguments can be obtained through ./fourier -h
 
