@@ -1,0 +1,130 @@
+
+#include "gensound.h"
+#include "fourier.h"
+#include "config.h"
+#include "graphics.h"
+
+#include <omp.h>
+#include <SDL2/SDL.h>
+
+#include <iostream>
+#include <cstdlib>  // EXIT_SUCCESS, EXIT_FAILURE
+#include <csignal>
+
+#include <limits>
+#include <ios>
+
+
+void play_test_tone(SDL_AudioDeviceID &out_dev) {
+    const int samples = SAMPLE_RATE * 4;
+    float wave[samples];
+
+    std::cout << "Playing 440Hz and then 400Hz" << std::endl << std::endl;
+
+    write_sine(440, wave, 0, (samples / 2));
+    write_sine(400, wave, (samples / 2), samples);
+
+    SDL_PauseAudioDevice(out_dev, 0);
+    if(SDL_QueueAudio(out_dev, wave, samples * sizeof(float)) < 0) {
+        printf("Can't queue audio: %s\n", SDL_GetError());
+        exit(EXIT_FAILURE);
+    }
+}
+
+
+void print_audio_settings(SDL_AudioSpec &specs, bool input) {
+    std::cout << "Audio " << (input ? "input" : "output") << " config:" << std::endl
+              << "Sample rate: " << SAMPLE_RATE << " " << specs.freq << std::endl
+              << "Format: " << FORMAT << " " << specs.format << std::endl
+              << "Channels: " << N_CHANNELS << " " << specs.channels << std::endl
+              << "Samples per buffer: " << SAMPLES_PER_BUFFER << " " << specs.samples << std::endl
+              << "Buffer size:  -  " << specs.size << " bytes" << std::endl
+              << "Silence value:  -  " << specs.silence << std::endl
+              << std::endl;
+}
+
+void parse_args(int argc, char *argv[]) {
+    for(int i = 1; i < argc; i++) {
+        // if(strcmp(argv[i], "-c") == 0)
+        /*else */if(strcmp(argv[i], "-s") == 0)
+            settings.generate_sine = true;
+        else if(strcmp(argv[i], "-t") == 0)
+            settings.test_tone = true;
+        else {
+            if(strcmp(argv[i], "-h") != 0 && strcmp(argv[i], "--help") != 0)
+                std::cout << "Incorrect usage.\n" << std::endl;
+
+            std::cout << "Flags:\n"
+                      // << "  -c    - Compute "
+                      << "  -s    - Generate sine instead of listening to input device\n"
+                      << "  -t    - Play test sound over speakers\n"
+                      << std::endl;
+            exit(EXIT_SUCCESS);
+        }
+    }
+}
+
+int main(int argc, char *argv[]) {
+    signal(SIGINT, signalHandler);
+
+    parse_args(argc, argv);
+
+    // Init SDL
+    if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
+        printf("SDL could not initialize!\nSDL Error: %s\n", SDL_GetError());
+        exit(EXIT_FAILURE);
+    }
+    std::cout << "Using audio driver: " << SDL_GetCurrentAudioDriver() << std::endl << std::endl;
+    Graphics graphics;
+
+    // Print available audio devices
+    int count = SDL_GetNumAudioDevices(0);
+    std::cout << "Playback devices:" << std::endl;
+    for(int i = 0; i < count; i++)
+        printf("  Audio device %d: %s\n", i, SDL_GetAudioDeviceName(i, 0));
+    std::cout << std::endl;
+
+    count = SDL_GetNumAudioDevices(1);
+    std::cout << "Recording devices:" << std::endl;
+    for(int i = 0; i < count; i++)
+        printf("  Audio device %d: %s\n", i, SDL_GetAudioDeviceName(i, 0));
+    std::cout << std::endl;
+
+    SDL_AudioSpec want, have;
+    SDL_memset(&want, 0, sizeof(want));
+    want.freq = SAMPLE_RATE;
+    want.format = FORMAT;
+    want.channels = N_CHANNELS;
+    want.samples = SAMPLES_PER_BUFFER;
+    want.callback = NULL;
+
+    SDL_AudioDeviceID out_dev = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0/*SDL_AUDIO_ALLOW_ANY_CHANGE*/);
+    if(out_dev == 0) {
+        printf("Failed to open audio: %s", SDL_GetError());
+        exit(EXIT_FAILURE);
+    }
+    print_audio_settings(have, false);
+
+    SDL_AudioDeviceID in_dev = SDL_OpenAudioDevice(NULL, 1, &want, &have, 0/*SDL_AUDIO_ALLOW_ANY_CHANGE*/);
+    if(in_dev == 0) {
+        printf("Failed to open audio: %s", SDL_GetError());
+        exit(EXIT_FAILURE);
+    }
+    print_audio_settings(have, true);
+
+    if(settings.test_tone)
+        play_test_tone(out_dev);
+
+    std::cout << "Cores: " << omp_get_num_procs() << std::endl
+              << "Samples per window: " << WINDOW_SAMPLES << std::endl
+              << "Window length: " << (double)WINDOW_SAMPLES / SAMPLE_RATE << 's' << std::endl;
+
+    fourier(in_dev, graphics, out_dev);
+
+
+    SDL_CloseAudioDevice(in_dev);
+    SDL_CloseAudioDevice(out_dev);
+    SDL_Quit();
+
+    return EXIT_SUCCESS;
+}
