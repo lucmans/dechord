@@ -10,7 +10,7 @@
 
 
 Graphics::Graphics() : res_x(DEFAULT_RES[0]), res_y(DEFAULT_RES[1]) {
-    window = SDL_CreateWindow("mitaur", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, res_x, res_y, SDL_WINDOW_UTILITY | SDL_WINDOW_RESIZABLE);
+    window = SDL_CreateWindow("dechord", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, res_x, res_y, SDL_WINDOW_UTILITY | SDL_WINDOW_RESIZABLE);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
     // Set the texture that will hold the waterfall plot of frequency domain and fill with black pixels
