@@ -27,7 +27,7 @@ Graphics::Graphics() : res_x(DEFAULT_RES[0]), res_y(DEFAULT_RES[1]) {
 
     line = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, (WINDOW_SAMPLES / 2) + 1, 1);
     if(line == NULL) {
-        printf("SDL could not create texture for line!\nSDL Error: %s\n", SDL_GetError());
+        printf("SDL could not create texture for line! Try compiling with samples per window (config.h)\nSDL Error: %s\n", SDL_GetError());
         exit(-1);
     }
 }

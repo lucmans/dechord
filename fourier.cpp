@@ -70,7 +70,8 @@ void handle_input(Graphics &graphics, double &max_norm) {
 }
 
 
-int max_element(const fftwf_complex values[], double norms[(WINDOW_SAMPLES / 2) + 1]) {
+// Also return the index of the maximum norm
+int calc_norms(const fftwf_complex values[], double norms[(WINDOW_SAMPLES / 2) + 1]) {
     int max_idx = -1;
     double max_value = -1.0;
 
@@ -190,9 +191,9 @@ void fourier(SDL_AudioDeviceID &in_dev, Graphics &graphics) {
         // Do the actual transform
         fftwf_execute(p);
 
-        // Determine loudest frequency
+        // Calculate the norms to get amplitude
         double norms[(WINDOW_SAMPLES / 2) + 1];
-        int max_idx = max_element(out, norms);
+        int max_idx = calc_norms(out, norms);
 
         // Onset detection
         double power = 0.0;
@@ -204,10 +205,11 @@ void fourier(SDL_AudioDeviceID &in_dev, Graphics &graphics) {
         double envelope[(WINDOW_SAMPLES / 2) + 1];
         calc_envelope(norms, envelope);
 
-        // TODO: Only find peaks if note is played
         std::vector<int> peaks;
-        // if(power > 20.0)
         find_peaks(norms, envelope, peaks);
+        // TODO: Only find peaks if note is played
+        if(power < 15.0)
+            peaks.clear();
 
         // Use the found peaks to find the played notes
         // create_note_set(norms, peaks);
