@@ -4,6 +4,7 @@
 #include "graphics.h"
 #include "gensound.h"
 #include "find_peaks.h"
+#include "note_set.h"
 
 #include <omp.h>
 #include <fftw3.h>
@@ -16,16 +17,7 @@
 #include <string>
 
 
-const char *notes[12] = {"A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"};
-
-
-struct ThreadReturnData {
-    int max_idx;
-    double norm;
-};
-
-
-int freq = 1000;
+static int freq = 1000;
 void handle_input(Graphics &graphics, double &max_norm) {
     SDL_Event e;
     while(SDL_PollEvent(&e)) {
@@ -101,10 +93,6 @@ int low_pass(int hz) {
 
 
 void read_window(SDL_AudioDeviceID &in_dev, float *in) {
-
-    // return;
-
-
     if(settings.generate_sine) {
         write_sine(freq, in, 0, WINDOW_SAMPLES);
         return;
@@ -149,18 +137,18 @@ inline double window_func(const int i) {
     // return a0 - (a1 * cos((2.0 * x) / N)) + (a2 * cos((4.0 * x) / N));
 
     // Nuttall window
-    const double a0 = 0.355768;
-    const double a1 = 0.487396;
-    const double a2 = 0.144232;
-    const double a3 = 0.012604;
-    return a0 - (a1 * cos((2.0 * x) / N)) + (a2 * cos((4.0 * x) / N)) - (a3 * cos((6.0 * x) / N));
+    // const double a0 = 0.355768;
+    // const double a1 = 0.487396;
+    // const double a2 = 0.144232;
+    // const double a3 = 0.012604;
+    // return a0 - (a1 * cos((2.0 * x) / N)) + (a2 * cos((4.0 * x) / N)) - (a3 * cos((6.0 * x) / N));
 
     // Blackman-Nuttall window
-    // const double a0 = 0.3635819;
-    // const double a1 = 0.4891775;
-    // const double a2 = 0.1365995;
-    // const double a3 = 0.0106411;
-    // return a0 - (a1 * cos((2.0 * x) / N)) + (a2 * cos((4.0 * x) / N)) - (a3 * cos((6.0 * x) / N));
+    const double a0 = 0.3635819;
+    const double a1 = 0.4891775;
+    const double a2 = 0.1365995;
+    const double a3 = 0.0106411;
+    return a0 - (a1 * cos((2.0 * x) / N)) + (a2 * cos((4.0 * x) / N)) - (a3 * cos((6.0 * x) / N));
 
     // Blackman-Harris window
     // const double a0 = 0.35875;
@@ -179,7 +167,7 @@ inline double window_func(const int i) {
 }
 
 
-void fourier(SDL_AudioDeviceID &in_dev, Graphics &graphics, SDL_AudioDeviceID &out_dev) {
+void fourier(SDL_AudioDeviceID &in_dev, Graphics &graphics) {
     // Init fftw
     float *in = (float*)fftwf_malloc(WINDOW_SAMPLES * sizeof(float));
     fftwf_complex *out = (fftwf_complex*)fftwf_malloc(((WINDOW_SAMPLES / 2) + 1) * sizeof(fftwf_complex));
@@ -191,16 +179,9 @@ void fourier(SDL_AudioDeviceID &in_dev, Graphics &graphics, SDL_AudioDeviceID &o
     reset_quit();
     double max_norm = 1.0;  // Used for coloring the graph
     SDL_PauseAudioDevice(in_dev, 0);  // Unpause device
-    // ThreadReturnData tr_data[omp_get_num_procs()];
-    // std::vector<float> buffer;  // TODO: Remove; this is for saving all recorded audio
     while(!poll_quit()) {
         // Fill input (window) with samples
         read_window(in_dev, in);
-
-        // TODO: Remove; this is for saving all recorded audio
-        // buffer.reserve(buffer.size() + WINDOW_SAMPLES);
-        // for(int i = 0; i < WINDOW_SAMPLES; i++)
-        //     buffer.push_back(in[i]);
 
         // Apply window function to minimize spectral leakage
         for(int i = 0; i < WINDOW_SAMPLES; i++)
@@ -218,77 +199,47 @@ void fourier(SDL_AudioDeviceID &in_dev, Graphics &graphics, SDL_AudioDeviceID &o
         for(int i = 1; i < (WINDOW_SAMPLES / 2) + 1; i++)
             power += norms[i];
 
+        // Peak picking
+        // Calculating the envelope is done here, because graphics will also need it
         double envelope[(WINDOW_SAMPLES / 2) + 1];
         calc_envelope(norms, envelope);
 
-        // Only find peaks if note is played
+        // TODO: Only find peaks if note is played
         std::vector<int> peaks;
+        // if(power > 20.0)
         find_peaks(norms, envelope, peaks);
-        // if(power > 20.0) {
-        //     std::vector<float> f_norms(begin(norms), end(norms));
-        //     Peaks::findPeaks(f_norms, peaks);
-        // }
+
+        // Use the found peaks to find the played notes
+        // create_note_set(norms, peaks);
 
         // Print results
         // double f = ((double)SAMPLE_RATE / WINDOW_SAMPLES) * max_idx;
-        double f = ((double)SAMPLE_RATE / WINDOW_SAMPLES) * interpolate_max(max_idx, norms);
-        // std::cout << notes[((int)round(fmod(12 * log2(f / A4), 12)) + 12) % 12] << "    "
-        //           << f << " Hz ±" << ((double)SAMPLE_RATE / WINDOW_SAMPLES) / 2.0
-        //           << "    amp " << norms[max_idx]
-        //           << "    power " << power
-        //           << (settings.generate_sine ? "    playing " + std::to_string(freq) + " Hz" : "")
-        //           << (!settings.generate_sine ? "    queue: " + std::to_string(SDL_GetQueuedAudioSize(in_dev) / WINDOW_SAMPLES) : "")
-        //           << "              "  << '\r';
-        // std::flush(std::cout);
+        // double f = ((double)SAMPLE_RATE / WINDOW_SAMPLES) * interpolate_max(max_idx, norms);
+        const double f = ((double)SAMPLE_RATE / WINDOW_SAMPLES) * interpolate_max(peaks[0], norms);
+        Note note(f);
+        std::cout << note << "    "
+                  << f << " Hz ±" << ((double)SAMPLE_RATE / WINDOW_SAMPLES) / 2.0
+                  << "    amp " << norms[max_idx]
+                  << "    power " << power
+                  << (settings.generate_sine ? "    playing " + std::to_string(freq) + " Hz" : "")
+                  << (!settings.generate_sine ? "    queue: " + std::to_string(SDL_GetQueuedAudioSize(in_dev) / WINDOW_SAMPLES) : "")
+                  << "              "  << '\r';
+        std::flush(std::cout);
 
         // Do front-end stuff
         if(norms[max_idx] > max_norm)  // Set the higher recorded value for coloring the graph
             max_norm = norms[max_idx];
 
         // Waterfall plot
-        // graphics.add_line(norms, max_norm, low_pass(3000), peaks);
-        // graphics.add_line(norms, max_norm, (WINDOW_SAMPLES / 2) + 1, {max_idx});
+        // graphics.add_line(norms, max_norm, peaks, low_pass(2000));
 
         // Normal graph
-        graphics.graph_spectrogram(norms, max_norm, low_pass(2500), peaks, envelope);
-        // graphics.graph_spectrogram(norms, max_norm, (WINDOW_SAMPLES / 2) + 1);
+        graphics.graph_spectrogram(norms, max_norm, peaks, envelope, low_pass(2500));
 
         handle_input(graphics, max_norm);
     }
     std::cout << std::endl;
 
-    // TODO: Remove; this is for playing back all recorded audio
-    // SDL_PauseAudioDevice(out_dev, 0);
-    // if(SDL_QueueAudio(out_dev, &buffer[0], buffer.size() * sizeof(float)) != 0) {
-    //     printf("Can't queue audio: %s\n", SDL_GetError());
-    //     exit(EXIT_FAILURE);
-    // }
-    // SDL_Delay(1000 * ((double)buffer.size() / SAMPLE_RATE));
-
     fftwf_destroy_plan(p);
     fftwf_free(in); fftwf_free(out);
-
-    return;
-
-
-    // Prevent warning
-    SDL_PauseAudioDevice(out_dev, 1);
 }
-
-
-    // Code from other project (fraccert) for reference of basic OMP threading code
-    // #pragma omp parallel num_threads(cores)
-    // {
-    //     while(true) {
-    //         int blocknum;
-    //         #pragma omp critical
-    //         {
-    //            blocknum = lastBlock;
-    //            lastBlock++;
-    //         }
-    //         if(blocknum >= totalBlocks)
-    //             break;
-
-    //         calcScreen(domain, res, blocks[blocknum], data, sharedPixels);
-    //     }
-    // }

@@ -16,7 +16,7 @@ LIBS = -lSDL2 -lfftw3f -lm -fopenmp lib/geeks/lagrange.o lib/find-peaks/Util.o
 CORES = 20
 
 BIN = fourier
-OBJ = main.o gensound.o fourier.o config.o graphics.o find_peaks.o
+OBJ = main.o gensound.o fourier.o config.o graphics.o find_peaks.o note_set.o
 
 
 .PHONY: all clean valgrind lines todo upload zip clean
@@ -36,7 +36,7 @@ main.o: main.cpp gensound.h fourier.h config.h graphics.h
 gensound.o: gensound.cpp gensound.h config.h
 	$(CXX) $(CXXFLAGS) $(WARNINGS) $(FLAGS) $(OPTIMIZATIONS) -c $<
 
-fourier.o: fourier.cpp fourier.h config.h graphics.h find_peaks.h
+fourier.o: fourier.cpp fourier.h config.h graphics.h find_peaks.h note_set.h
 	$(CXX) $(CXXFLAGS) $(WARNINGS) $(FLAGS) $(OPTIMIZATIONS) -c $<
 
 config.o: config.cpp config.h
@@ -46,6 +46,9 @@ graphics.o: graphics.cpp graphics.h config.h
 	$(CXX) $(CXXFLAGS) $(WARNINGS) $(FLAGS) $(OPTIMIZATIONS) -c $<
 
 find_peaks.o: find_peaks.cpp find_peaks.h config.h
+	$(CXX) $(CXXFLAGS) $(WARNINGS) $(FLAGS) $(OPTIMIZATIONS) -c $<
+
+note_set.o: note_set.cpp note_set.h config.h
 	$(CXX) $(CXXFLAGS) $(WARNINGS) $(FLAGS) $(OPTIMIZATIONS) -c $<
 
 # %.o: %.cpp $(wildcard *.h)

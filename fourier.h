@@ -8,7 +8,7 @@
 #include <SDL2/SDL.h>
 
 
-void fourier(SDL_AudioDeviceID &in_dev, Graphics &graphics, SDL_AudioDeviceID &out_dev);
+void fourier(SDL_AudioDeviceID &in_dev, Graphics &graphics);
 
 
 #endif  // FOURIER_H

@@ -119,7 +119,7 @@ int main(int argc, char *argv[]) {
               << "Samples per window: " << WINDOW_SAMPLES << std::endl
               << "Window length: " << (double)WINDOW_SAMPLES / SAMPLE_RATE << 's' << std::endl;
 
-    fourier(in_dev, graphics, out_dev);
+    fourier(in_dev, graphics);
 
 
     SDL_CloseAudioDevice(in_dev);

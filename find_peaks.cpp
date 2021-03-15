@@ -97,7 +97,9 @@ void find_peaks(const double norms[(WINDOW_SAMPLES / 2) + 1], const double envel
     // peak_lib(norms, peaks);
     // all_max(norms, peaks);
     envelope_peaks(norms, envelope, peaks);
+    // envelope_highest_peak(norms, envelope, peaks);
 }
+
 
 double interpolate_max(const int max_idx, const double norms[(WINDOW_SAMPLES / 2) + 1]) {
     const double a = norms[max_idx - 1],

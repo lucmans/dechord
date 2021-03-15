@@ -17,7 +17,7 @@ Graphics::Graphics() : res_x(DEFAULT_RES[0]), res_y(DEFAULT_RES[1]) {
     buffer = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, res_x, res_y);
     SDL_SetRenderTarget(renderer, buffer);
     SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xff);
-    SDL_Rect rect = {0, 0, res_x, res_y};
+    const SDL_Rect rect = {0, 0, res_x, res_y};
     SDL_RenderFillRect(renderer, &rect);
     SDL_SetRenderTarget(renderer, NULL);
 
@@ -25,7 +25,11 @@ Graphics::Graphics() : res_x(DEFAULT_RES[0]), res_y(DEFAULT_RES[1]) {
     SDL_RenderCopy(renderer, buffer, NULL, NULL);
     SDL_RenderPresent(renderer);
 
-    line = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, (WINDOW_SAMPLES / 2) + 1, 1);
+    line = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, (WINDOW_SAMPLES / 2) + 1, 1);
+    if(line == NULL) {
+        printf("SDL could not create texture for line!\nSDL Error: %s\n", SDL_GetError());
+        exit(-1);
+    }
 }
 
 Graphics::~Graphics() {
@@ -37,7 +41,7 @@ Graphics::~Graphics() {
 
 
 uint32_t calc_color(const double data, const double max_value) {
-    uint32_t rgba = 0;
+    uint32_t rgba = 0xff;
     // const double t = log(data) / log(max_value);
     const double t = (data / max_value) * 0.8;
 
@@ -48,32 +52,32 @@ uint32_t calc_color(const double data, const double max_value) {
     return rgba;
 }
 
-void Graphics::add_line(const double data[(WINDOW_SAMPLES / 2) + 1], const double max_value, const int n_data_points,
-                        const std::vector<int> &peaks) {
+void Graphics::add_line(const double data[(WINDOW_SAMPLES / 2) + 1], const double max_value,
+                        const std::vector<int> &peaks, const int n_data_points = (WINDOW_SAMPLES / 2) + 1) {
+    uint32_t *pixels;
+    int pitch;
+    SDL_LockTexture(line, NULL, (void **)&pixels, &pitch);
     // Generate next line
-    uint32_t colors[n_data_points];
-    for(int i = 0; i < n_data_points; i++) {
-        colors[i] = calc_color(data[i], max_value);
-    }
+    for(int i = 0; i < n_data_points; i++)
+        pixels[i] = calc_color(data[i], max_value);
 
     // Color found peaks
     for(unsigned int i = 0; i < peaks.size(); i++) {
         if(peaks[i] >= n_data_points)
             continue;
-        colors[peaks[i]] = 0x00ff00ff;
+        pixels[peaks[i]] = 0xff00ffff;
     }
-
-    SDL_UpdateTexture(line, NULL, colors, (n_data_points) * sizeof(uint32_t));
+    SDL_UnlockTexture(line);
 
     // Shift all lines one place down
-    SDL_Rect repeat_src = {0, 0, res_x, res_y - 1};
-    SDL_Rect repeat_dst = {0, 1, res_x, res_y - 1};
+    const SDL_Rect repeat_src = {0, 0, res_x, res_y - 1};
+    const SDL_Rect repeat_dst = {0, 1, res_x, res_y - 1};
     SDL_SetRenderTarget(renderer, buffer);
     SDL_RenderCopy(renderer, buffer, &repeat_src, &repeat_dst);
 
     // Draw new line
-    SDL_Rect line_src = {0, 0, n_data_points, 1};
-    SDL_Rect line_dst = {0, 0, res_x, 1};
+    const SDL_Rect line_src = {0, 0, n_data_points, 1};
+    const SDL_Rect line_dst = {0, 0, res_x, 1};
     SDL_RenderCopy(renderer, line, &line_src, &line_dst);
     SDL_SetRenderTarget(renderer, NULL);
 
@@ -82,8 +86,9 @@ void Graphics::add_line(const double data[(WINDOW_SAMPLES / 2) + 1], const doubl
     SDL_RenderPresent(renderer);
 }
 
-void Graphics::graph_spectrogram(const double data[(WINDOW_SAMPLES / 2) + 1], const double max_value, const int n_data_points,
-                                 const std::vector<int> &peaks, const double envelope[(WINDOW_SAMPLES / 2) + 1]) {
+void Graphics::graph_spectrogram(const double data[(WINDOW_SAMPLES / 2) + 1], const double max_value,
+                                 const std::vector<int> &peaks, const double envelope[(WINDOW_SAMPLES / 2) + 1],
+                                 const int n_data_points = (WINDOW_SAMPLES / 2) + 1) {
     // TODO: Remove this memory leak
     static SDL_Texture *graf = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, res_x, res_y);
     SDL_SetRenderTarget(renderer, graf);

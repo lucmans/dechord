@@ -8,7 +8,7 @@
 
 // Audio related configs
 const int SAMPLE_RATE = 96000 * 2;
-const int WINDOW_SAMPLES = 1024 * 16 * 2;
+const int WINDOW_SAMPLES = 1024 * 16/* * 2*/;
 
 
 const SDL_AudioFormat FORMAT = AUDIO_F32SYS;

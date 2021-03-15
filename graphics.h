@@ -18,11 +18,12 @@ class Graphics {
         Graphics();
         ~Graphics();
 
-        void add_line(const double data[(WINDOW_SAMPLES / 2) + 1], const double max_value, const int n_data_points,
-                      const std::vector<int> &peaks);
+        void add_line(const double data[(WINDOW_SAMPLES / 2) + 1], const double max_value,
+                      const std::vector<int> &peaks, const int n_data_points/* = (WINDOW_SAMPLES / 2) + 1*/);
 
-        void graph_spectrogram(const double data[(WINDOW_SAMPLES / 2) + 1], const double max_value, const int n_data_points,
-                               const std::vector<int> &peaks, const double envelope[(WINDOW_SAMPLES / 2) + 1]);
+        void graph_spectrogram(const double data[(WINDOW_SAMPLES / 2) + 1], const double max_value,
+                               const std::vector<int> &peaks, const double envelope[(WINDOW_SAMPLES / 2) + 1],
+                               const int n_data_points/* = (WINDOW_SAMPLES / 2) + 1*/);
 
         void resize_window(const int x, const int y);
 

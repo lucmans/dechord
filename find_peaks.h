@@ -14,4 +14,5 @@ void find_peaks(const double norms[(WINDOW_SAMPLES / 2) + 1], const double envel
 // Given a peak at max_idx (can't be first or last of norms), interpolate actual peak location
 double interpolate_max(const int max_idx, const double norms[(WINDOW_SAMPLES / 2) + 1]);
 
+
 #endif  // FIND_PEAKS
