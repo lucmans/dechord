@@ -66,3 +66,53 @@ NoteSet::NoteSet(const double norms[(WINDOW_SAMPLES / 2) + 1], const std::vector
 NoteSet::~NoteSet() {
     
 }
+
+
+const std::vector<Note>* NoteSet::get_notes() const {
+    return &notes;
+}
+
+const Note* NoteSet::get_loudest() const {
+    if(notes.size() == 0)
+        return nullptr;
+    else if(notes.size() == 1)
+        return &notes[0];
+
+    const Note *out = &notes[0];
+    for(size_t i = 1; i < notes.size(); i++) {
+        if(notes[i].amp > out->amp)
+            out = &notes[i];
+    }
+
+    return out;
+}
+
+const Note* NoteSet::get_lowest() const {
+    if(notes.size() == 0)
+        return nullptr;
+    else if(notes.size() == 1)
+        return &notes[0];
+
+    const Note *out = &notes[0];
+    for(size_t i = 1; i < notes.size(); i++) {
+        if(notes[i].freq < out->freq)
+            out = &notes[i];
+    }
+
+    return out;
+}
+
+
+std::ostream& operator<<(std::ostream &s, const NoteSet &noteset) {
+    const std::vector<Note> *notes = noteset.get_notes();
+    if(notes->size() == 0) {
+        return s << "{}";
+    }
+
+    s << '{' << (*notes)[0];
+    for(size_t i = 1; i < notes->size(); i++)
+        s << ", " << (*notes)[i];
+    s << '}';
+
+    return s;
+}

@@ -215,22 +215,33 @@ void fourier(SDL_AudioDeviceID &in_dev, Graphics &graphics) {
         NoteSet noteset(norms, peaks);
 
         // Print results
-        double amp;
-        // double f = ((double)SAMPLE_RATE / WINDOW_SAMPLES) * max_idx;
-        // double f = ((double)SAMPLE_RATE / WINDOW_SAMPLES) * interpolate_max(max_idx, norms);
-        const double f = ((double)SAMPLE_RATE / WINDOW_SAMPLES) * interpolate_max(peaks[0], norms, amp);
-        Note note(f, amp);
-        std::cout << note << "   "
-                  << f << " Hz ±" << ((double)SAMPLE_RATE / WINDOW_SAMPLES) / 2.0
-                  << "    amp " << amp
-                  << "    power " << power
-                  << (settings.generate_sine ? "    playing " + std::to_string(freq) + " Hz" : "")
-                  << (!settings.generate_sine ? "    queue: " + std::to_string(SDL_GetQueuedAudioSize(in_dev) / WINDOW_SAMPLES) : "")
-                  << "              "  << '\r';
-        std::flush(std::cout);
+        const Note *note_loud = noteset.get_loudest();
+        if(note_loud != nullptr)
+            std::cout << "Loud " << *note_loud << "  " << note_loud->freq << "  " << note_loud->amp << std::endl;
+
+        const Note *note_low = noteset.get_lowest();
+        if(note_low != nullptr)
+            std::cout << "Low " << *note_low << "  " << note_low->freq << "  " << note_low->amp << std::endl;
+
+        std::cout << noteset << std::endl;
+        std::cout << std::endl;
+
+        // double amp;
+        // // double f = ((double)SAMPLE_RATE / WINDOW_SAMPLES) * max_idx;
+        // // double f = ((double)SAMPLE_RATE / WINDOW_SAMPLES) * interpolate_max(max_idx, norms);
+        // const double f = ((double)SAMPLE_RATE / WINDOW_SAMPLES) * interpolate_max(peaks[0], norms, amp);
+        // Note note(f, amp);
+        // std::cout << note << "   "
+        //           << f << " Hz ±" << ((double)SAMPLE_RATE / WINDOW_SAMPLES) / 2.0
+        //           << "    amp " << amp
+        //           << "    power " << power
+        //           << (settings.generate_sine ? "    playing " + std::to_string(freq) + " Hz" : "")
+        //           << (!settings.generate_sine ? "    queue: " + std::to_string(SDL_GetQueuedAudioSize(in_dev) / WINDOW_SAMPLES) : "")
+        //           << "              "  << '\r';
+        // std::flush(std::cout);
 
         // Do front-end stuff
-        if(norms[max_idx] > max_norm)  // Set the higher recorded value for coloring the graph
+        if(norms[max_idx] > max_norm)  // Set the higher recorded value for graph limits
             max_norm = norms[max_idx];
 
         // Waterfall plot

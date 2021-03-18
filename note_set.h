@@ -44,10 +44,16 @@ class NoteSet {
         NoteSet(const double norms[(WINDOW_SAMPLES / 2) + 1], const std::vector<int> &peaks);
         ~NoteSet();
 
+        const std::vector<Note>* get_notes() const;
+        const Note* get_loudest() const;
+        const Note* get_lowest() const;
+
 
     private:
         std::vector<Note> notes;
 };
+
+std::ostream& operator<<(std::ostream &s, const NoteSet &noteset);
 
 
 #endif  // NOTE_H

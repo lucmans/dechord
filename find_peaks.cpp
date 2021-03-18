@@ -2,8 +2,8 @@
 #include "find_peaks.h"
 #include "config.h"
 
-#include "lib/find-peaks/Util.h"
-#include "lib/geeks/lagrange.h"
+// #include "lib/find-peaks/Util.h"
+// #include "lib/geeks/lagrange.h"
 
 #include <vector>
 #include <algorithm>
@@ -34,17 +34,17 @@ void calc_envelope(const double norms[(WINDOW_SAMPLES / 2) + 1], double envelope
 }
 
 
-void peak_lib(const double norms[(WINDOW_SAMPLES / 2) + 1], std::vector<int> &peaks) {
-    // Using find_peaks library
-    std::vector<float> f_norms(&norms[0], &norms[WINDOW_SAMPLES / 2]);
-    Peaks::findPeaks(f_norms, peaks);
+// void peak_lib(const double norms[(WINDOW_SAMPLES / 2) + 1], std::vector<int> &peaks) {
+//     // Using find_peaks library
+//     std::vector<float> f_norms(&norms[0], &norms[WINDOW_SAMPLES / 2]);
+//     Peaks::findPeaks(f_norms, peaks);
     
-    // Filter quiet peaks
-    for(size_t i = peaks.size(); i > 0; i--) {
-        if(norms[peaks[i - 1]] < 2.5)
-            peaks.erase(peaks.begin() + (i - 1));
-    }
-}
+//     // Filter quiet peaks
+//     for(size_t i = peaks.size(); i > 0; i--) {
+//         if(norms[peaks[i - 1]] < 2.5)
+//             peaks.erase(peaks.begin() + (i - 1));
+//     }
+// }
 
 void all_max(const double norms[(WINDOW_SAMPLES / 2) + 1], std::vector<int> &peaks) {
     for(int i = 1; i < (WINDOW_SAMPLES / 2); i++) {

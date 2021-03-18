@@ -12,7 +12,7 @@ CXXFLAGS = -std=c++11 -g -fsanitize=address
 WARNINGS = -Wall -Wextra -Wfloat-equal #-Wconversion -Warith-conversion
 # FLAGS = -DCOLORED
 OPTIMIZATIONS = -O3 -march=native -mtune=native # -mfma -mavx2 -ftree-vectorize -ffast-math
-LIBS = -lSDL2 -lfftw3f -lm -fopenmp lib/geeks/lagrange.o lib/find-peaks/Util.o
+LIBS = -lSDL2 -lfftw3f -lm -fopenmp #lib/geeks/lagrange.o lib/find-peaks/Util.o
 CORES = 20
 
 BIN = fourier
