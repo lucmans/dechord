@@ -40,9 +40,9 @@ void peak_lib(const double norms[(WINDOW_SAMPLES / 2) + 1], std::vector<int> &pe
     Peaks::findPeaks(f_norms, peaks);
     
     // Filter quiet peaks
-    for(int i = peaks.size() - 1; i >= 0; i--) {
-        if(norms[peaks[i]] < 2.5)
-            peaks.erase(peaks.begin() + i);
+    for(size_t i = peaks.size(); i > 0; i--) {
+        if(norms[peaks[i - 1]] < 2.5)
+            peaks.erase(peaks.begin() + (i - 1));
     }
 }
 
@@ -53,9 +53,9 @@ void all_max(const double norms[(WINDOW_SAMPLES / 2) + 1], std::vector<int> &pea
     }
 
     // Filter quiet peaks
-    for(int i = peaks.size() - 1; i >= 0; i--) {
-        if(norms[peaks[i]] < 3)
-            peaks.erase(peaks.begin() + i);
+    for(size_t i = peaks.size(); i > 0; i--) {
+        if(norms[peaks[i - 1]] < 3)
+            peaks.erase(peaks.begin() + (i - 1));
     }
 }
 
@@ -66,9 +66,9 @@ void envelope_peaks(const double norms[(WINDOW_SAMPLES / 2) + 1], const double e
     }
 
     // Filter quiet peaks
-    for(int i = peaks.size() - 1; i >= 0; i--) {
-        if(envelope[peaks[i]] < 0.1)
-            peaks.erase(peaks.begin() + i);
+    for(size_t i = peaks.size(); i > 0; i--) {
+        if(envelope[peaks[i - 1]] < 0.1)
+            peaks.erase(peaks.begin() + (i - 1));
     }
 }
 
@@ -98,14 +98,4 @@ void find_peaks(const double norms[(WINDOW_SAMPLES / 2) + 1], const double envel
     // all_max(norms, peaks);
     envelope_peaks(norms, envelope, peaks);
     // envelope_highest_peak(norms, envelope, peaks);
-}
-
-
-double interpolate_max(const int max_idx, const double norms[(WINDOW_SAMPLES / 2) + 1]) {
-    const double a = norms[max_idx - 1],
-                 b = norms[max_idx],
-                 c = norms[max_idx + 1];
-    const double p = 0.5 * ((a - c) / (a - (2.0 * b) + c));
-
-    return max_idx + p;
 }

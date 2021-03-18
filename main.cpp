@@ -21,8 +21,8 @@ void play_test_tone(SDL_AudioDeviceID &out_dev) {
 
     std::cout << "Playing 440Hz and then 400Hz" << std::endl << std::endl;
 
-    write_sine(440, wave, 0, (samples / 2));
-    write_sine(400, wave, (samples / 2), samples);
+    write_sinef(440, wave, 0, (samples / 2));
+    write_sinef(400, wave, (samples / 2), samples);
 
     SDL_PauseAudioDevice(out_dev, 0);
     if(SDL_QueueAudio(out_dev, wave, samples * sizeof(float)) < 0) {

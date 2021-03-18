@@ -95,7 +95,7 @@ int low_pass(int hz) {
 
 void read_window(SDL_AudioDeviceID &in_dev, float *in) {
     if(settings.generate_sine) {
-        write_sine(freq, in, 0, WINDOW_SAMPLES);
+        write_sinef(freq, in, 0, WINDOW_SAMPLES);
         return;
     }
 
@@ -212,16 +212,17 @@ void fourier(SDL_AudioDeviceID &in_dev, Graphics &graphics) {
             peaks.clear();
 
         // Use the found peaks to find the played notes
-        // create_note_set(norms, peaks);
+        NoteSet noteset(norms, peaks);
 
         // Print results
+        double amp;
         // double f = ((double)SAMPLE_RATE / WINDOW_SAMPLES) * max_idx;
         // double f = ((double)SAMPLE_RATE / WINDOW_SAMPLES) * interpolate_max(max_idx, norms);
-        const double f = ((double)SAMPLE_RATE / WINDOW_SAMPLES) * interpolate_max(peaks[0], norms);
-        Note note(f);
-        std::cout << note << "    "
+        const double f = ((double)SAMPLE_RATE / WINDOW_SAMPLES) * interpolate_max(peaks[0], norms, amp);
+        Note note(f, amp);
+        std::cout << note << "   "
                   << f << " Hz ±" << ((double)SAMPLE_RATE / WINDOW_SAMPLES) / 2.0
-                  << "    amp " << norms[max_idx]
+                  << "    amp " << amp
                   << "    power " << power
                   << (settings.generate_sine ? "    playing " + std::to_string(freq) + " Hz" : "")
                   << (!settings.generate_sine ? "    queue: " + std::to_string(SDL_GetQueuedAudioSize(in_dev) / WINDOW_SAMPLES) : "")
