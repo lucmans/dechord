@@ -30,5 +30,6 @@ Code structure:
     main.cpp: Initializes libraries and devices
     fourier.cpp: Performs actual Fourier analysis and contains related function. For now also handles input.
     graphics.cpp: Handles the Window which can show a waterfall plot, but now only shows the spectrum (green), rolling Gaussian mean (red) and peaks (blue)
-    find_peaks.cpp: Mainly contains code for finding peaks in the spectrum, but also contains code for peak interpolation and calculating the rolling Gaussian mean
+    note_set.cpp: Makes sets of notes from a given spectrum with peak locations. Based on these note sets, f0 estimation can be performed. Exact f0 is interpolated and polyphony can be detected using "overtone sieves".
+    find_peaks.cpp: Contains code for finding peaks in the spectrum, so also calculates the rolling Gaussian mean of a spectrum
     gensound.cpp: Contains functions for generating test tones
