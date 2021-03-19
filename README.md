@@ -1,4 +1,4 @@
-(view this file in normal text editor; whitespace characters don't seem to work properly)
+(view this file in normal text editor; whitespace characters don't seem to work properly on the GitHub website)
 
 Before compiling, install FFTW3 and SDL2 libraries.
 
@@ -18,10 +18,9 @@ Information about CLI arguments can be obtained through ./fourier -h
 
 Usage instructions:
 The application uses the terminal along with a graphical interface.
-The terminal is only used for text output. At the start, information about the available audio drivers and interfaces will be printed. Also the requested audio setting and received settings from the driver are printed. Lastly, information about the Fourier transform will be printed to the screen.
-During the real-time transforming, the current guess for the played note is shown along with the detected loudest frequency and it's calculated error margin. The amplitude of the signal is also listed. The input buffer (recording) queue length is also printed to validate that the program remains real-time.
+The terminal is only used for text output. At the start, information about the available audio drivers and interfaces will be printed. Also the requested audio setting and received settings from the driver are printed. Lastly, information about the Fourier transform will be printed to the screen. After this, real-time information on the current estimate are continuously printed.
 The program can be closed by sending SIGINT to the terminal (ctrl+c) or pressing q/ESC in the graphical interface.
-When running the program with "-s", a sine wave is generated with 1000Hz. The frequency can be increased or decreased using the - and = (+ without shift) keys. The plot is colored relative to the highest measured amplitude. This value can be reset to 0 by pressing r inside the graphical interface.
+When running the program with "-s", a sine wave is generated with 1000Hz. The frequency can be increased or decreased using the - and = (+ without shift) keys. The plot height/colors are relative to the highest measured amplitude. This value can be reset to 0 by pressing r inside the graphical interface.
 
 
 
