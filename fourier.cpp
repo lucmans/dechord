@@ -215,16 +215,20 @@ void fourier(SDL_AudioDeviceID &in_dev, Graphics &graphics) {
         NoteSet noteset(norms, peaks);
 
         // Print results
-        const Note *note_loud = noteset.get_loudest();
-        if(note_loud != nullptr)
-            std::cout << "Loud " << *note_loud << "  " << note_loud->freq << "  " << note_loud->amp << std::endl;
+        // const Note *note_loud = noteset.get_loudest_peak();
+        // if(note_loud != nullptr)
+        //     std::cout << "Loud " << *note_loud << "  " << note_loud->freq << "  " << note_loud->amp << std::endl;
 
-        const Note *note_low = noteset.get_lowest();
+        // const Note *note_low = noteset.get_lowest_peak();
+        // if(note_low != nullptr)
+        //     std::cout << "Low " << *note_low << "  " << note_low->freq << "  " << note_low->amp << std::endl;
+
+        const Note *note_low = noteset.get_lowest_note();
         if(note_low != nullptr)
-            std::cout << "Low " << *note_low << "  " << note_low->freq << "  " << note_low->amp << std::endl;
+            std::cout << "Low " << *note_low << "  " << note_low->freq << "  " << note_low->amp << std::endl << std::endl;
 
-        std::cout << noteset << std::endl;
-        std::cout << std::endl;
+        // std::cout << noteset << std::endl;
+        // std::cout << std::endl;
 
         // double amp;
         // // double f = ((double)SAMPLE_RATE / WINDOW_SAMPLES) * max_idx;

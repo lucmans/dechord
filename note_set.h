@@ -18,15 +18,15 @@ double interpolate_max(const int max_idx, const double norms[(WINDOW_SAMPLES / 2
 
 
 // 'd' denotes #; the opposite of b (from diesis)
-enum class Notes {
+enum Notes : int {
     A = 0, Ad = 1, B = 2, C = 3, Cd = 4, D = 5,
     Dd = 6, E = 7, F = 8, Fd = 9, G = 10, Gd = 11
 };
 
 
 struct Note {
-    double freq;
-    double amp;
+    double freq = -1;
+    double amp = -1;
 
     // Closest note
     Notes note;
@@ -34,6 +34,7 @@ struct Note {
     // double error;  // In cents, so between -50 and 50
 
     Note(const double freq, const double amp);
+    Note(const Notes note, const int octave);
 };
 
 std::ostream& operator<<(std::ostream &s, const Note &note);
@@ -45,14 +46,17 @@ class NoteSet {
         ~NoteSet();
 
         const std::vector<Note>* get_notes() const;
-        const Note* get_loudest() const;
-        const Note* get_lowest() const;
+        const Note* get_loudest_peak() const;
+        const Note* get_lowest_peak() const;
+
+        const Note* get_lowest_note() const;
 
 
     private:
         std::vector<Note> notes;
 };
 
+// TODO: Make function a friend of NoteSet
 std::ostream& operator<<(std::ostream &s, const NoteSet &noteset);
 
 
