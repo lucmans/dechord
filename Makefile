@@ -1,5 +1,5 @@
 ##
-# Makefile: The makefile for mitaur, a guitar to MIDI program
+# Makefile: The makefile for dechord, a guitar to MIDI program
 # @author Luc de Jonckheere
 ##
 
@@ -12,7 +12,7 @@ CXXFLAGS = -std=c++11 -g -fsanitize=address
 WARNINGS = -Wall -Wextra -Wfloat-equal #-Wconversion -Warith-conversion
 # FLAGS = -DCOLORED
 OPTIMIZATIONS = -O3 -march=native -mtune=native # -mfma -mavx2 -ftree-vectorize -ffast-math
-LIBS = -lSDL2 -lfftw3f -lm -fopenmp #lib/geeks/lagrange.o lib/find-peaks/Util.o
+LIBS = -lSDL2 -lfftw3f -lm -fopenmp
 CORES = 20
 
 BIN = fourier
@@ -55,9 +55,6 @@ note_set.o: note_set.cpp note_set.h config.h
 # 	$(CXX) $(CXXFLAGS) $(WARNINGS) $(FLAGS) $(OPTIMIZATIONS) -c $<
 
 
-lib/find-peaks/Util.o: find-peaks/Util.cpp find-peaks/Util.h
-	$(CXX) $(CXXFLAGS) $(WARNINGS) $(FLAGS) $(OPTIMIZATIONS) -c $< -o $@
-
 
 # For studying the generated assembly
 %.s: %.cpp  %.h
@@ -97,4 +94,3 @@ clean:
 	rm -f *.s
 	rm -f vgcore*
 	rm -f ./fourier.tar.gz
-# 	rm -f find-peaks/*.o

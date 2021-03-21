@@ -10,14 +10,17 @@
 const int SAMPLE_RATE = 96000 * 2;
 const int WINDOW_SAMPLES = 1024 * 16/* * 2*/;
 
+// Central A in Hz
+const double A4 = 440.0;
 
+// Threshold of channel power before finding peaks
+const double POWER_THRESHOLD = 15.0;
+
+
+// Audio driver config
 const SDL_AudioFormat FORMAT = AUDIO_F32SYS;
 const unsigned int N_CHANNELS = 1;
 const unsigned int SAMPLES_PER_BUFFER = 512;
-
-
-// Central A in Hz
-const double A4 = 440.0;
 
 
 // Graphics related configs

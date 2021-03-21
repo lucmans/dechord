@@ -13,6 +13,7 @@
 
 
 // Given a peak at max_idx (can't be first or last of norms), interpolate actual peak location
+// TODO: Interpolate on dB spectrum for higher accuracy
 double interpolate_max(const int max_idx, const double norms[(WINDOW_SAMPLES / 2) + 1]);
 double interpolate_max(const int max_idx, const double norms[(WINDOW_SAMPLES / 2) + 1], double &amp);
 
@@ -31,7 +32,7 @@ struct Note {
     // Closest note
     Notes note;
     int octave;
-    // double error;  // In cents, so between -50 and 50
+    double error = 0.0;  // In cents, so between -50 and 50
 
     Note(const double freq, const double amp);
     Note(const Notes note, const int octave);
@@ -49,7 +50,8 @@ class NoteSet {
         const Note* get_loudest_peak() const;
         const Note* get_lowest_peak() const;
 
-        const Note* get_lowest_note() const;
+        const Note* get_likeliest_note() const;
+        void get_likely_notes(std::vector<const Note*> &out) const;
 
 
     private:

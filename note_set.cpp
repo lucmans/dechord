@@ -25,6 +25,7 @@ const std::string stringify_sub(int n) {
 }
 
 
+// TODO: Interpolate on dB spectrum for higher accuracy
 double interpolate_max(const int max_idx, const double norms[(WINDOW_SAMPLES / 2) + 1]) {
     const double a = norms[max_idx - 1],
                  b = norms[max_idx],
@@ -34,6 +35,7 @@ double interpolate_max(const int max_idx, const double norms[(WINDOW_SAMPLES / 2
     return max_idx + p;
 }
 
+// TODO: Interpolate on dB spectrum for higher accuracy
 double interpolate_max(const int max_idx, const double norms[(WINDOW_SAMPLES / 2) + 1], double &amp) {
     const double a = norms[max_idx - 1],
                  b = norms[max_idx],
@@ -56,7 +58,8 @@ Note::Note(const double _freq, const double _amp) : freq(_freq), amp(_amp) {
     if(note == Notes::C && abs(_freq - (C1 * exp2(octave - 1))) > 0.3 * _freq)
         octave++;
 
-    // error = 
+    const double tuned_freq = A4 * exp2(round(12.0 * log2(freq / A4)) / 12.0);
+    error = 1200.0 * log2(_freq / tuned_freq);
 };
 
 Note::Note(const Notes _note, const int _octave) : note(_note), octave(_octave) {}
@@ -92,13 +95,14 @@ const std::vector<Note>* NoteSet::get_notes() const {
 }
 
 const Note* NoteSet::get_loudest_peak() const {
-    if(notes.size() == 0)
+    const int n_notes = notes.size();
+    if(n_notes == 0)
         return nullptr;
-    else if(notes.size() == 1)
+    else if(n_notes == 1)
         return &notes[0];
 
     const Note *out = &notes[0];
-    for(size_t i = 1; i < notes.size(); i++) {
+    for(int i = 1; i < n_notes; i++) {
         if(notes[i].amp > out->amp)
             out = &notes[i];
     }
@@ -106,14 +110,16 @@ const Note* NoteSet::get_loudest_peak() const {
     return out;
 }
 
+// TODO: Could be optimized by returning first peak, as the peak picking algorithms sorts the peaks
 const Note* NoteSet::get_lowest_peak() const {
-    if(notes.size() == 0)
+    const int n_notes = notes.size();
+    if(n_notes == 0)
         return nullptr;
-    else if(notes.size() == 1)
+    else if(n_notes == 1)
         return &notes[0];
 
     const Note *out = &notes[0];
-    for(size_t i = 1; i < notes.size(); i++) {
+    for(int i = 1; i < n_notes; i++) {
         if(notes[i].freq < out->freq)
             out = &notes[i];
     }
@@ -122,22 +128,23 @@ const Note* NoteSet::get_lowest_peak() const {
 }
 
 
-const Note* NoteSet::get_lowest_note() const {
-    if(notes.size() == 0)
+const Note* NoteSet::get_likeliest_note() const {
+    const int n_notes = notes.size();
+    if(n_notes == 0)
         return nullptr;
-    else if(notes.size() == 1)
+    else if(n_notes == 1)
         return &notes[0];
 
-    std::vector<int> n_harmonics(notes.size(), 0);
-    for(size_t i = 0; i < notes.size(); i++) {
-        for(size_t j = i + 1; j < notes.size(); j++) {
-            if(fmod(notes[j].freq / notes[i].freq, 1.0) < 0.1)
+    std::vector<int> n_harmonics(n_notes, 0);
+    for(int i = 0; i < n_notes; i++) {
+        for(int j = i + 1; j < n_notes; j++) {
+            if(fmod(notes[j].freq / notes[i].freq, 1.0) < 0.05)
                 n_harmonics[i]++;
         }
     }
 
-    size_t max_idx = 0;
-    for(size_t i = 1; i < n_harmonics.size(); i++) {
+    int max_idx = 0;
+    for(int i = 1; i < n_notes; i++) {
         if(n_harmonics[i] > n_harmonics[max_idx])
             max_idx = i;
     }
@@ -145,15 +152,58 @@ const Note* NoteSet::get_lowest_note() const {
     return &notes[max_idx];
 }
 
+#include <iostream>
+void NoteSet::get_likely_notes(std::vector<const Note*> &out) const {
+    out.clear();
+
+    const int n_notes = notes.size();
+    if(n_notes == 0)
+        return;
+    else if(n_notes == 1) {
+        out.push_back(&notes[0]);
+        return;
+    }
+
+    // First find the number of possible harmonics for each note
+    std::vector<int> n_harmonics(n_notes, 0);
+    std::vector<bool> explained(n_notes, false);
+    for(int i = 0; i < n_notes; i++) {
+        for(int j = i + 1; j < n_notes; j++) {
+            if(fmod(notes[j].freq / notes[i].freq, 1.0) < 0.05) {
+                n_harmonics[i]++;
+                explained[j] = true;
+            }
+        }
+    }
+
+    // Subtract harmonics from signal and see if other harmonics are still left
+    // Repeat till no peaks are left
+}
+
+
+// std::ostream& operator<<(std::ostream &s, const NoteSet &noteset) {
+//     const std::vector<Note> *notes = noteset.get_notes();
+//     const int n_notes = notes->size();
+//     if(n_notes == 0)
+//         return s << "{}";
+
+//     s << '{' << (*notes)[0];
+//     for(int i = 1; i < n_notes; i++)
+//         s << ", " << (*notes)[i];
+//     s << '}';
+
+//     return s;
+// }
 
 std::ostream& operator<<(std::ostream &s, const NoteSet &noteset) {
     const std::vector<Note> *notes = noteset.get_notes();
-    if(notes->size() == 0)
+    const int n_notes = notes->size();
+    if(n_notes == 0)
         return s << "{}";
 
-    s << '{' << (*notes)[0];
-    for(size_t i = 1; i < notes->size(); i++)
-        s << ", " << (*notes)[i];
+    s << '{' << (*notes)[0].freq;
+    for(int i = 1; i < n_notes; i++)
+        s << ", " << (*notes)[i].freq;
     s << '}';
 
     return s;

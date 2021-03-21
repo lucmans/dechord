@@ -11,8 +11,8 @@
 #include <SDL2/SDL.h>
 
 #include <iostream>
+#include <iomanip>
 #include <cmath>
-
 #include <vector>
 #include <string>
 
@@ -206,10 +206,9 @@ void fourier(SDL_AudioDeviceID &in_dev, Graphics &graphics) {
         calc_envelope(norms, envelope);
 
         std::vector<int> peaks;
-        find_peaks(norms, envelope, peaks);
         // TODO: Only find peaks if note is played
-        if(power < 15.0)
-            peaks.clear();
+        if(power > POWER_THRESHOLD)
+            find_peaks(norms, envelope, peaks);
 
         // Use the found peaks to find the played notes
         NoteSet noteset(norms, peaks);
@@ -223,9 +222,9 @@ void fourier(SDL_AudioDeviceID &in_dev, Graphics &graphics) {
         // if(note_low != nullptr)
         //     std::cout << "Low " << *note_low << "  " << note_low->freq << "  " << note_low->amp << std::endl;
 
-        const Note *note_low = noteset.get_lowest_note();
-        if(note_low != nullptr)
-            std::cout << "Low " << *note_low << "  " << note_low->freq << "  " << note_low->amp << std::endl << std::endl;
+        const Note *note_like = noteset.get_likeliest_note();
+        if(note_like != nullptr)
+            std::cout << std::fixed << std::setprecision(2) << "Likeliest " << *note_like << "   freq: " << note_like->freq << "   amp: " << note_like->amp << "   cent off " << note_like->error << std::endl;
 
         // std::cout << noteset << std::endl;
         // std::cout << std::endl;
