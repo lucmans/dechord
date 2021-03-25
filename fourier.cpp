@@ -15,6 +15,10 @@
 #include <cmath>
 #include <vector>
 #include <string>
+#include <chrono>
+
+
+typedef std::chrono::duration<double, std::milli> duration_t;  // Omit ", std::milli" for second
 
 
 static int freq = 1000;
@@ -180,9 +184,12 @@ void fourier(SDL_AudioDeviceID &in_dev, Graphics &graphics) {
     reset_quit();
     double max_norm = 1.0;  // Used for coloring the graph
     SDL_PauseAudioDevice(in_dev, 0);  // Unpause device
+    std::chrono::steady_clock::time_point start, end;  // Measures time between receiving WINDOW_SAMPLES samples from audio driver and outputting the answer
     while(!poll_quit()) {
         // Fill input (window) with samples
         read_window(in_dev, in);
+
+        start = std::chrono::steady_clock::now();
 
         // Apply window function to minimize spectral leakage
         for(int i = 0; i < WINDOW_SAMPLES; i++)
@@ -222,12 +229,20 @@ void fourier(SDL_AudioDeviceID &in_dev, Graphics &graphics) {
         // if(note_low != nullptr)
         //     std::cout << "Low " << *note_low << "  " << note_low->freq << "  " << note_low->amp << std::endl;
 
-        const Note *note_like = noteset.get_likeliest_note();
-        if(note_like != nullptr)
-            std::cout << std::fixed << std::setprecision(2) << "Likeliest " << *note_like << "   freq: " << note_like->freq << "   amp: " << note_like->amp << "   cent off " << note_like->error << std::endl;
+        // const Note *note_like = noteset.get_likeliest_note();
+        // if(note_like != nullptr)
+        //     std::cout << std::fixed << std::setprecision(2) << "Likeliest " << *note_like << "   freq: " << note_like->freq << "   amp: " << note_like->amp << "   cent off " << note_like->error << std::endl;
+
+        std::vector<const Note*> likely;
+        noteset.get_likely_notes(likely);
+        print_notevec(likely);
 
         // std::cout << noteset << std::endl;
         // std::cout << std::endl;
+
+        end = std::chrono::steady_clock::now();
+        std::cout << std::chrono::duration_cast<duration_t>(end - start).count() << " ms" << std::endl
+                  << std::endl;
 
         // double amp;
         // // double f = ((double)SAMPLE_RATE / WINDOW_SAMPLES) * max_idx;

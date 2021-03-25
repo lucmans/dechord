@@ -2,8 +2,10 @@
 #include "note_set.h"
 #include "config.h"
 
+#include <iostream>
 #include <ostream>
 #include <string>
+#include <cctype>
 
 
 const char *note_string[12] = {"A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"};
@@ -63,6 +65,7 @@ Note::Note(const double _freq, const double _amp) : freq(_freq), amp(_amp) {
 };
 
 Note::Note(const Notes _note, const int _octave) : note(_note), octave(_octave) {}
+
 
 std::ostream& operator<<(std::ostream &s, const Note &note) {
     s << note_string[static_cast<int>(note.note)] << stringify_sub(note.octave);
@@ -152,7 +155,7 @@ const Note* NoteSet::get_likeliest_note() const {
     return &notes[max_idx];
 }
 
-#include <iostream>
+
 void NoteSet::get_likely_notes(std::vector<const Note*> &out) const {
     out.clear();
 
@@ -169,11 +172,19 @@ void NoteSet::get_likely_notes(std::vector<const Note*> &out) const {
     std::vector<bool> explained(n_notes, false);
     for(int i = 0; i < n_notes; i++) {
         for(int j = i + 1; j < n_notes; j++) {
-            if(fmod(notes[j].freq / notes[i].freq, 1.0) < 0.05) {
+            const double harmonic_fit = fmod(notes[j].freq / notes[i].freq, 1.0);
+            if(harmonic_fit < 0.1 || harmonic_fit > 0.9) {
                 n_harmonics[i]++;
+                // std::cout << notes[j] << " explained by " << notes[i] << std::endl;
                 explained[j] = true;
             }
         }
+    }
+
+    // Test if has more harmonics then others
+    for(int i = 0; i < n_notes; i++) {
+        if(!explained[i])
+            out.push_back(&notes[i]);
     }
 
     // Subtract harmonics from signal and see if other harmonics are still left
@@ -181,25 +192,18 @@ void NoteSet::get_likely_notes(std::vector<const Note*> &out) const {
 }
 
 
-// std::ostream& operator<<(std::ostream &s, const NoteSet &noteset) {
-//     const std::vector<Note> *notes = noteset.get_notes();
-//     const int n_notes = notes->size();
-//     if(n_notes == 0)
-//         return s << "{}";
-
-//     s << '{' << (*notes)[0];
-//     for(int i = 1; i < n_notes; i++)
-//         s << ", " << (*notes)[i];
-//     s << '}';
-
-//     return s;
-// }
-
 std::ostream& operator<<(std::ostream &s, const NoteSet &noteset) {
     const std::vector<Note> *notes = noteset.get_notes();
     const int n_notes = notes->size();
     if(n_notes == 0)
         return s << "{}";
+
+    s << '{' << (*notes)[0];
+    for(int i = 1; i < n_notes; i++)
+        s << ", " << (*notes)[i];
+    s << '}';
+
+    std::cout << std::endl;
 
     s << '{' << (*notes)[0].freq;
     for(int i = 1; i < n_notes; i++)
@@ -207,4 +211,36 @@ std::ostream& operator<<(std::ostream &s, const NoteSet &noteset) {
     s << '}';
 
     return s;
+}
+
+// std::ostream& operator<<(std::ostream &s, const NoteSet &noteset) {
+//     const std::vector<Note> *notes = noteset.get_notes();
+//     const int n_notes = notes->size();
+//     if(n_notes == 0)
+//         return s << "{}";
+
+//     s << '{' << (*notes)[0].freq;
+//     for(int i = 1; i < n_notes; i++)
+//         s << ", " << (*notes)[i].freq;
+//     s << '}';
+
+//     return s;
+// }
+
+void print_notevec(const std::vector<const Note*> note_vec) {
+    const int n_notes = note_vec.size();
+    if(n_notes == 0) {
+        std::cout << "{}" << std::endl;
+        return;
+    }
+
+    std::cout << '{' << *note_vec[0];
+    for(int i = 1; i < n_notes; i++)
+        std::cout << ", " << *note_vec[i];
+    std::cout << '}' << std::endl;
+
+    std::cout << '{' << note_vec[0]->freq;
+    for(int i = 1; i < n_notes; i++)
+        std::cout << ", " << note_vec[i]->freq;
+    std::cout << '}' << std::endl;
 }

@@ -60,6 +60,6 @@ class NoteSet {
 
 // TODO: Make function a friend of NoteSet
 std::ostream& operator<<(std::ostream &s, const NoteSet &noteset);
-
+void print_notevec(const std::vector<const Note*> note_vec);
 
 #endif  // NOTE_H
