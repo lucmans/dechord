@@ -14,6 +14,8 @@ const char *sub[10] = {"\xe2\x82\x80", "\xe2\x82\x81", "\xe2\x82\x82",
                        "\xe2\x82\x86", "\xe2\x82\x87", "\xe2\x82\x88", "\xe2\x82\x89"};
 
 const std::string stringify_sub(int n) {
+    if(n < 0)
+        return "";
     if(n < 10)
         return sub[n];
 

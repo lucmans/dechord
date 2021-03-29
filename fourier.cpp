@@ -178,7 +178,7 @@ void fourier(SDL_AudioDeviceID &in_dev, Graphics &graphics) {
     fftwf_complex *out = (fftwf_complex*)fftwf_malloc(((WINDOW_SAMPLES / 2) + 1) * sizeof(fftwf_complex));
     fftwf_plan p = fftwf_plan_dft_r2c_1d(WINDOW_SAMPLES, in, out, FFTW_ESTIMATE);
 
-    std::cout << "Fourier error: " << SAMPLE_RATE / (double)WINDOW_SAMPLES << "Hz" << std::endl << std::endl;
+    std::cout << "Fourier bin size: " << SAMPLE_RATE / (double)WINDOW_SAMPLES << "Hz" << std::endl << std::endl;
 
     // Main loop
     reset_quit();
@@ -197,6 +197,9 @@ void fourier(SDL_AudioDeviceID &in_dev, Graphics &graphics) {
 
         // Do the actual transform
         fftwf_execute(p);
+        // end = std::chrono::steady_clock::now();
+        // std::cout << std::chrono::duration_cast<duration_t>(end - start).count() << " ms" << std::endl
+        //           << std::endl;
 
         // Calculate the norms to get amplitude
         double norms[(WINDOW_SAMPLES / 2) + 1];
