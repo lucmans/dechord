@@ -1,0 +1,122 @@
+\documentclass[10pt,twocolumn]{article}
+
+% \frenchspacing
+% \setlength\parindent{0pt}
+
+\usepackage[english]{babel}
+\usepackage[stretch=10, shrink=10]{microtype}
+\usepackage[a4paper, total={6.5in, 9in}]{geometry}
+% \usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+% Better vspace in enumerate/itemize
+\usepackage{enumitem}
+\setlist{noitemsep,topsep=0pt,parsep=0pt,partopsep=0pt}
+
+% \setlength{\columnsep}{8mm}
+
+\title{\textbf{Multi-pitch estimation based on mathematical models}\\A pitch estimation framework and harmonic sieve algorithm}
+\author{Luc de Jonckheere}
+% \date{}
+
+\begin{document}
+\selectlanguage{english}
+
+\maketitle
+%\tableofcontents
+
+
+\section*{Abstract}
+% In the field of automatic music transcription (AMT), data driven methods such as artificial intelligence and machine learning are becoming more popular by the year. This is especially true for multi-pitch estimation (also known as multiple $f_0$ estimation). Even though the results are getting better every year, little understanding of the problem is gained. The few papers which use mathematical models to solve this problem, do not publish their code which makes it difficult to build upon.
+
+% In this paper, we will present an extensible pitch estimation system along with a harmonic sieve algorithm which can perform basic multi-pitch estimation. This system can be used as basis for further research of the individual components.
+
+
+\section{Introduction}
+Automatic Music Transcription (AMT) is a field of study which tries to convert acoustic recordings into some form of (digital) music notation~\cite{survey1}. This task can be divided into two subproblems, pitch estimation and onset detection~\cite{survey2}. Instead of trying to convert a song into music notation, this paper will focus on translating a guitar signal into a set of played notes in real-time. This problem is very similar to AMT, as both require pitch estimation and onset/offset detection, however, in our case we also have take latency into account.
+
+Single pitch estimation can be accurately performed using simple mathematical models. Multi pitch estimation is much harder as harmonic overtones are difficult to differentiate from the fundamental notes. Because of this, most recent methods use machine learning or artificial intelligence. These methods are not well suited for real-time transcription. Also, no actual (mathematical) understanding of the problem is gained. Because of this, this paper will focus on mathematically solving this problem. Even if the methods researched in this paper might not outperform ML/AI solutions by themselves, they could be used to filter the input data for the ML/AI approaches. This might in turn improve the results of the AI/ML methods significantly.
+
+Pitch estimation can also be divided in a few subproblems. If a paper focusses on one of these subproblems, it also has to solve the other subproblems in order to test the system. Most papers do not publish their source code, which makes building upon other's work difficult, as often only the subproblem of interest is described. It also limits the research of the interaction between different solutions for the different subproblems. Because of this, we provide a framework in which can be built upon, as the implementation of a subproblem can easily be interchanged with another. The code can be found on "github.com/lucmans/dechord".
+
+In short, the goal of this paper is developing a program which can translate a guitar signal to a set of observed notes in real-time. We also provide an algorithm which can estimate a set of played notes using the set of observed notes. The code should be publically available and easily extensible so others can optimize a subproblem without having to solve the other subproblems.
+
+Do note that this paper is a preliminary paper for a possible master thesis. The focus is on building a prototype which can perform monophonic AMT and presenting a first draft of a polyphonic version. Using this information, we will estimate if the thesis project is feasible.
+
+
+\section{Related work}
+Spectral peak picking based AMT methods are often deemed infeasible for real-time AMT~\cite{hater}, due to the relatively low resolution in the low frequencies when using the Fourier transform. This problem cannot be alleviated by zero-padding the Fourier transform input, as it does not add any information, it merely increases the resolution by interpolation~\cite{infomax}. However, using quadratic interpolation, we can very accurately interpolate peaks within Fourier frequency bins~\cite{interpol}. Also, other transforms such as the constant Q transform~\cite{cqt} which do provide more resolution in lower frequencies are getting more popular, which will allow us to differentiate two notes on a very small interval.
+
+
+\section{Preliminaries}
+\textcolor{gray}{Note: Explain knowledge required for the methods described in the next section. For instance, latency we can control (speed of code and Fourier window size) and what we can't (audio driver settings). Fourier works on frames, which is a buffer filled with samples.}
+
+
+\section{Pitch estimation}
+Automatic music transcription can be separated into two main problems; onset detection and pitch estimation~\cite{survey2}. In this paper, we will focus on pitch estimation. Because we always output the set of played notes for the last analysed frame, we do not require onset information. However, this information can improve the results of pitch estimation. When the duration of a note is known, we choose to only use the samples from within a note for analysis. Also, onset/offset information can be used to more effectively filter transients.
+
+Pitch detection can be broken down into a few subproblems. First, a frequency domain representation of the signal is obtained (e.g. Fourier transform). Then, significant peaks have to be selected from the frequency domain. Based on the found peaks, we have to determine what notes were actually played on the instrument.
+
+\subsection{Transform to frequency domain}
+To estimate the frequency components of a frame, transforms are used. Most commonly, the Fourier transform is used as it is the most researched transform and much is known about it~\cite{survey2}. Its main downside is that the frequency bins are constant is size, where the distance between notes increases exponentially. Because of this, low notes are hard to discern in the frequency domain where high notes have more resolution than needed. Because of this, other transforms such as the constant Q transform (CQT) are getting more popular.
+
+When using the Fourier transform, window functions have to by applied to the frames to prevent spectral leakage. Furthermore, the actual peak locations can be accurately interpolated using (Lagrangian) quadratic interpolation~\cite{interpol}. These concepts are further described in Section~\ref{sec:impl}.
+
+\subsection{Peak picking}
+Peaks in the frequency domain correspond to predominant frequencies in the analysed frame. However, not every peak is of interest. Some peaks are generated by noise, especially in frequency ranges where there is no signal. These peaks can be filtered by requiring a minimal signal level to be considered a peak. Also, due to spectral leakage, peaks can be observed which are not in the original signal. Even though these peaks are minimized by using window functions, they still have to be taken into consideration. In polyphonic signals, harmonic overtones may slightly interfere (TODO: Maybe make preliminary section about overtone dissonance), which will also lead to inconsistent peaks.
+
+On order to determine if a peak is significant enough, we calculate a Gaussian average envelope~\cite{gauss}. For every point in a frame, the Gaussian average is a weighted average of all points in the frame. The weight is determined by the distance from the current point. The distance in number of bins goes through a Gaussian function to determine the actual weight. Here, higher values for $\sigma$ make points close by weight more compared to distant points. How this envelope is precisely calculated and used for peak picking is described in Section~\ref{sec:impl}.
+
+\subsection{Note sets}
+Given the spectral peaks from the previous step, we can try to calculate what notes they represent. Unfortunately, the found peaks do not only contain fundamental frequencies, but also harmonic overtones. This is only a small problem in monophonic transcription, as there is only one fundamental frequency and its overtones. However, in the polyphonic case, it is difficult to determine which peaks are fundamentals and by extension know how many notes are played at the same time.
+
+In order to determine if peaks are fundamentals or overtones, we first determine which notes frequencies represent and calculate the error on these notes. The error is calculated as the number of cents from the closest harmonic note. The errors are different for every overtone, as overtones are dissonant compared to equal temperament tuning. If only harmonic notes (small error in cents) were played on a guitar, we could filter all notes with an error higher than an arbitrary threshold. However, as most guitars are not perfectly intonated and strings detune by pressing them down on a fret, we opted not to rely on this information.
+
+To determine if notes are fundamentals or overtones, we use a "harmonic sieve". Here, we look if any higher peak can be explained by the currently considered peak. The more other peaks a peak can explain, the more likely it is to be a fundamental. Moreover, if we can't explain some peaks based on the lowest peak, we know there was a second note in the source signal.
+
+
+\section{Implementation}  \label{sec:impl}
+The program developed for this paper is written in C++ (11) and compiled with g++ (10.2.0). It uses SDL (2.0.14) for audio input/output and spectrum visualisation. FFTW (3.3.9) is used for efficient Fourier transforms.
+
+\subsection{Transform to frequency domain}
+Our program uses the Fourier transform to obtain the frequency domain representation. We choose this transform as FFTW provides a very fast implementation. This speed is necessary for the real-time constrains on our system.
+
+The resolution of the Fourier transform is dependent on the number of samples in a frame. We sample the guitar signal at 192 kHz, which is the maximum sample rate for most audio interfaces. To allow guitarists to play mildly fast, we have to limit our frame length. If the frame size if too large, multiple separate notes may be included in one transform, which would make it seem like the notes were played at the same time. Moreover, frame sizes which are a power of two can be transformed more efficiently, which further restricts are frame size choice. We chose a frame size of 16584 samples, which at 192 kHz is 0.085 seconds (11.72 frames per second). This gives us a Fourier bin size of 11.72 Hz. At first glance, such a large bin size seems like a big problem, as the smallest interval that can be played on a guitar (G\#\textsubscript{2}-A\textsubscript{2}) is about 6 Hz. However, the overtones of these notes will have more Hz between them. Also, as discussed in Section~\ref{sec:future}, we might be able to increase the frame size without reducing our frame rate too much.
+
+It is possible to determine the actual peak location within a Fourier bin using quadratic interpolation~\cite{interpol2}. The lobes in the frequency domain form parabolas in a dB (logarithmic) scale, which allows quadratic interpolation to be very accurate. This interpolation is performed during the peak picking step, so only peaks that matter are interpolated.
+
+Before applying a transform, a window function is often applied to minimize the artefacts produced by the transform. In this paper, we mainly use the Blackman-Nuttall window, but the following windows are also provided: Hamming window, Hann window, Blackman window, Nuttall window, Blackman-Harris window, Flat top window. Other window functions can easily be added.
+
+\subsection{Peak picking}
+Three different peak picking algorithms have been implemented. The first picks every local maximum (every \texttt{i} where \texttt{data[i - 1] < data[i] \&\& data[i] > data[i + 1]}). The other two algorithms pick peaks based on a Gaussian average envelope. One algorithm picks all peaks which are above this average and the other only picks the highest peak for each spectral lobe above this average. Using this envelope, we effectively filter small local maxima close to large local maxima.
+
+The Gaussian average envelope is calculated by taking the weighted average of all the samples in a Fourier window. The weights are determined by a Gaussian function ($e^{-\pi(\frac{x}{\sigma})^2}$) where the mean is the point in the envelope which is calculated. The value of sigma has to be chosen at compile time. Higher values for $\sigma$ makes points around the mean have a higher weighting. We choose a value of 1.2, but this value could be optimized for better results.
+
+Even though this envelope works well for parts of the spectrum with peaks, it will still find peaks in noisy areas without peaks. This can be prevented in two ways. The first is setting a threshold which a peak has to exceed. This will result in less sustain, but works well. Secondly, we know that peaks outside the frequency range of a guitar cannot be a fundamental frequency. We can discard peaks lower than the lowest note, but peaks higher than the highest note still provide us information as will be described in Section~\ref{sub:impnoteset}
+
+\subsection{Note sets}  \label{sub:impnoteset}
+Using all the found peaks, we can start determining which peaks are overtones and which are fundamentals. Creating a monophonic algorithm is relatively easy in this step. For instance, we can iterate over all found peaks. Then, we can look at every higher peak and see if it can be a harmonic overtone. After counting the number of overtones for every peak, we can pick the peak with the most overtones.
+
+A similar algorithm can work for the polyphonic case. As the number of played notes in unknown, we have to determine of a note is a fundamental or harmonic. We cannot just set a threshold for the number of overtones a fundamental should have, because the number of detected overtones is very inconsistent.
+
+To solve this, we present a harmonic sieve algorithm. Instead of directly looking for fundamentals, we sieve all guaranteed harmonics from the peaks.
+
+
+\section{Experiments}  \label{sec:exp}
+Experiments show basis is there, but results not consistent enough...
+
+
+\section{Future work}  \label{sec:future}
+How to make results more consistent (onset detection, transient filtering). How to make the project more real-time (threading rolling transforms).
+
+
+
+
+\addcontentsline{toc}{chapter}{Bibliography}
+\bibliographystyle{plain}
+\bibliography{paper}
+
+\end{document}
