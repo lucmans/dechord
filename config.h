@@ -16,6 +16,10 @@ const double A4 = 440.0;
 // Threshold of channel power before finding peaks
 const double POWER_THRESHOLD = 15.0;
 
+// Gaussian average settings (for peak picking)
+const int KERNEL_WIDTH = 45;  // Choose odd value
+const double SIGMA = 1.2;  // Higher values of sigma make values close to kernel center weight more
+
 
 // Audio driver config
 const SDL_AudioFormat FORMAT = AUDIO_F32SYS;

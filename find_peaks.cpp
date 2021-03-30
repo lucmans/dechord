@@ -6,19 +6,20 @@
 #include <algorithm>
 
 
-const int KERNEL_WIDTH = 45;  // Choose odd value
 const int MID = KERNEL_WIDTH / 2;
-const double SIGMA = 1.2;  // Higher values of sigma make values close to kernel center weight more
+double gaussian[KERNEL_WIDTH];
 
 
-void calc_gaussian(double gaussian[KERNEL_WIDTH]) {
+int calc_gaussian(double gaussian[KERNEL_WIDTH]) {
     for(int i = 0; i < KERNEL_WIDTH; i++)
         gaussian[i] = exp(-M_PI * ((double)(i - MID) / ((double)MID * SIGMA)) * ((double)(i - MID) / ((double)MID * SIGMA)));
+
+    return 1;  // For static assignment (calculating only once)
 }
 
 void calc_envelope(const double norms[(WINDOW_SAMPLES / 2) + 1], double envelope[(WINDOW_SAMPLES / 2) + 1]) {
-    double gaussian[KERNEL_WIDTH];
-    calc_gaussian(gaussian);  // TODO: Only calculate once
+    // Static to only Gaussian calculate once
+    static int init = calc_gaussian(gaussian);
 
     for(int i = 0; i < (WINDOW_SAMPLES / 2) + 1; i++) {
         double sum = 0, weights = 0;
@@ -28,6 +29,10 @@ void calc_envelope(const double norms[(WINDOW_SAMPLES / 2) + 1], double envelope
         }
         envelope[i] = sum / weights;
     }
+
+    // Prevent warning
+    return;
+    init++;
 }
 
 

@@ -120,55 +120,56 @@ void read_window(SDL_AudioDeviceID &in_dev, float *in) {
 }
 
 
-// TODO: Optimize by pre-calulating values for every i < WINDOW_SAMPLES and storing in array
-inline double window_func(const int i) {
-    // No window function
-    // return 1.0;
-
+void window_func(double window[WINDOW_SAMPLES]) {
     const double N = WINDOW_SAMPLES;
-    const double x = i * M_PI;
+    for(int i = 0; i < WINDOW_SAMPLES; i++) {
+        const double x = i * M_PI;
 
-    // Hamming window
-    // const double a0 = 25.0 / 46.0;
-    // return a0 - ((1.0 - a0) * cos((2.0 * x) / N));
+        // No window function
+        // window[i] = 1.0;
 
-    // Hann window
-    // return sin(x / N) * sin(x / N);
+        // Hamming window
+        // const double a0 = 25.0 / 46.0;
+        // window[i] = a0 - ((1.0 - a0) * cos((2.0 * x) / N));
 
-    // Blackman window
-    // const double a0 = 7938.0 / 18608.0;
-    // const double a1 = 9240.0 / 18608.0;
-    // const double a2 = 1430.0 / 18608.0;
-    // return a0 - (a1 * cos((2.0 * x) / N)) + (a2 * cos((4.0 * x) / N));
+        // Hann window
+        // window[i] = sin(x / N) * sin(x / N);
 
-    // Nuttall window
-    // const double a0 = 0.355768;
-    // const double a1 = 0.487396;
-    // const double a2 = 0.144232;
-    // const double a3 = 0.012604;
-    // return a0 - (a1 * cos((2.0 * x) / N)) + (a2 * cos((4.0 * x) / N)) - (a3 * cos((6.0 * x) / N));
+        // Blackman window
+        // const double a0 = 7938.0 / 18608.0;
+        // const double a1 = 9240.0 / 18608.0;
+        // const double a2 = 1430.0 / 18608.0;
+        // window[i] = a0 - (a1 * cos((2.0 * x) / N)) + (a2 * cos((4.0 * x) / N));
 
-    // Blackman-Nuttall window
-    const double a0 = 0.3635819;
-    const double a1 = 0.4891775;
-    const double a2 = 0.1365995;
-    const double a3 = 0.0106411;
-    return a0 - (a1 * cos((2.0 * x) / N)) + (a2 * cos((4.0 * x) / N)) - (a3 * cos((6.0 * x) / N));
+        // Nuttall window
+        // const double a0 = 0.355768;
+        // const double a1 = 0.487396;
+        // const double a2 = 0.144232;
+        // const double a3 = 0.012604;
+        // window[i] = a0 - (a1 * cos((2.0 * x) / N)) + (a2 * cos((4.0 * x) / N)) - (a3 * cos((6.0 * x) / N));
 
-    // Blackman-Harris window
-    // const double a0 = 0.35875;
-    // const double a1 = 0.48829;
-    // const double a2 = 0.14128;
-    // const double a3 = 0.01168;
-    // return a0 - (a1 * cos((2.0 * x) / N)) + (a2 * cos((4.0 * x) / N)) - (a3 * cos((6.0 * x) / N));
+        // Blackman-Nuttall window
+        const double a0 = 0.3635819;
+        const double a1 = 0.4891775;
+        const double a2 = 0.1365995;
+        const double a3 = 0.0106411;
+        window[i] = a0 - (a1 * cos((2.0 * x) / N)) + (a2 * cos((4.0 * x) / N)) - (a3 * cos((6.0 * x) / N));
 
-    // Flat top window
-    // const double a0 = 0.21557895;
-    // const double a1 = 0.41663158;
-    // const double a2 = 0.277263158;
-    // const double a3 = 0.083578947;
-    // const double a4 = 0.006947368;
-    // return a0 - (a1 * cos((2.0 * x) / N)) + (a2 * cos((4.0 * x) / N)) - (a3 * cos((6.0 * x) / N)) + (a4 * cos((8.0 * x) / N));
+        // Blackman-Harris window
+        // const double a0 = 0.35875;
+        // const double a1 = 0.48829;
+        // const double a2 = 0.14128;
+        // const double a3 = 0.01168;
+        // window[i] = a0 - (a1 * cos((2.0 * x) / N)) + (a2 * cos((4.0 * x) / N)) - (a3 * cos((6.0 * x) / N));
+
+        // Flat top window
+        // const double a0 = 0.21557895;
+        // const double a1 = 0.41663158;
+        // const double a2 = 0.277263158;
+        // const double a3 = 0.083578947;
+        // const double a4 = 0.006947368;
+        // window[i] = a0 - (a1 * cos((2.0 * x) / N)) + (a2 * cos((4.0 * x) / N)) - (a3 * cos((6.0 * x) / N)) + (a4 * cos((8.0 * x) / N));
+    }
 }
 
 
@@ -177,6 +178,9 @@ void fourier(SDL_AudioDeviceID &in_dev, Graphics &graphics) {
     float *in = (float*)fftwf_malloc(WINDOW_SAMPLES * sizeof(float));
     fftwf_complex *out = (fftwf_complex*)fftwf_malloc(((WINDOW_SAMPLES / 2) + 1) * sizeof(fftwf_complex));
     fftwf_plan p = fftwf_plan_dft_r2c_1d(WINDOW_SAMPLES, in, out, FFTW_ESTIMATE);
+
+    double window[WINDOW_SAMPLES];
+    window_func(window);
 
     std::cout << "Fourier bin size: " << SAMPLE_RATE / (double)WINDOW_SAMPLES << "Hz" << std::endl << std::endl;
 
@@ -193,7 +197,7 @@ void fourier(SDL_AudioDeviceID &in_dev, Graphics &graphics) {
 
         // Apply window function to minimize spectral leakage
         for(int i = 0; i < WINDOW_SAMPLES; i++)
-            in[i] *= window_func(i);
+            in[i] *= window[i];
 
         // Do the actual transform
         fftwf_execute(p);
