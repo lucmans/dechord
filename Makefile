@@ -15,7 +15,7 @@ OPTIMIZATIONS = -O3 -march=native -mtune=native # -mfma -mavx2 -ftree-vectorize 
 LIBS = -lSDL2 -lfftw3f -lm -fopenmp
 CORES = 20
 
-BIN = fourier
+BIN = dechord
 OBJ = main.o gensound.o fourier.o config.o graphics.o find_peaks.o note_set.o
 
 
