@@ -2,7 +2,7 @@
 
 Before compiling, install FFTW3 and SDL2 libraries.
 
-Note that this project is just a prototype. It runs very inefficient and has some small memory leaks. These "mistakes" are marked with a TODO comment in the code.
+Note that this project is just a prototype. In the branch "paper", a report ("paper.pdf") can be found which explains what has been implemented and what has to be implemented for this program to actually perform real-time polyphonic guitar to MIDI translation.
 
 On Ubuntu:
     sudo apt install libsdl2-dev libfftw3-dev
