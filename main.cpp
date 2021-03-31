@@ -86,9 +86,10 @@ void print_overtones(std::string note_string, const int n = 5) {
     const double C1 = A4 * exp2(-45.0 / 12.0);
     const double freq = C1 * exp2(octave_distance) * exp2((double)note_distance / 12.0);
 
+    std::cout << std::left << std::setw(12) << "f_harmonic" << std::setw(14) << "closest note" << std::setw(11) <<  "f_closest" << std::setw(11) << "cent error" << std::endl << std::right;
     for(int i = 1; i <= n; i++) {
         Note note(freq * i, 0);
-        std::cout << std::fixed << std::setprecision(3) << freq * i << "   " << note << "   " << note.error << std::endl;
+        std::cout << std::fixed << std::setprecision(3) << std::setw(10) << freq * i << std::setw(13) << note << std::setw(11) << A4 * exp2(round(12.0 * log2((freq * i) / A4)) / 12.0) << std::setw(12) << note.error << std::endl;
     }
     std::cout << std::endl;
 }
