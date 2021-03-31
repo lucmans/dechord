@@ -20,6 +20,9 @@ const double POWER_THRESHOLD = 15.0;
 const int KERNEL_WIDTH = 45;  // Choose odd value
 const double SIGMA = 1.2;  // Higher values of sigma make values close to kernel center weight more
 
+// Error in cents that an detected overtone may have compared to the theoretical overtone
+const double OVERTONE_ERROR = 10.0;
+
 
 // Audio driver config
 const SDL_AudioFormat FORMAT = AUDIO_F32SYS;

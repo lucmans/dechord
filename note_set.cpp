@@ -143,7 +143,10 @@ const Note* NoteSet::get_likeliest_note() const {
     std::vector<int> n_harmonics(n_notes, 0);
     for(int i = 0; i < n_notes; i++) {
         for(int j = i + 1; j < n_notes; j++) {
-            if(fmod(notes[j].freq / notes[i].freq, 1.0) < 0.05)
+            const double detected_freq = notes[j].freq;
+            const double theoretical_freq = notes[i].freq * round(notes[j].freq / notes[i].freq);
+            const double cent_error = 1200 * log2(detected_freq / theoretical_freq);
+            if(cent_error > -OVERTONE_ERROR && cent_error < OVERTONE_ERROR)
                 n_harmonics[i]++;
         }
     }
@@ -169,18 +172,26 @@ void NoteSet::get_likely_notes(std::vector<const Note*> &out) const {
         return;
     }
 
+    for(auto &a : notes)
+        std::cout << a << ' ';
+    std::cout << std::endl;
+
     // First find the number of possible harmonics for each note
     std::vector<int> n_harmonics(n_notes, 0);
     std::vector<bool> explained(n_notes, false);
     for(int i = 0; i < n_notes; i++) {
         for(int j = i + 1; j < n_notes; j++) {
-            const double harmonic_fit = fmod(notes[j].freq / notes[i].freq, 1.0);
-            if(harmonic_fit < 0.1 || harmonic_fit > 0.9) {
+            const double detected_freq = notes[j].freq;
+            const double theoretical_freq = notes[i].freq * round(notes[j].freq / notes[i].freq);
+            const double cent_error = 1200 * log2(detected_freq / theoretical_freq);
+            // std::cout << notes[i].freq << ' ' << detected_freq << ' ' << theoretical_freq << ' ' << cent_error << std::endl;
+            if(cent_error > -OVERTONE_ERROR && cent_error < OVERTONE_ERROR) {
                 n_harmonics[i]++;
                 // std::cout << notes[j] << " explained by " << notes[i] << std::endl;
                 explained[j] = true;
             }
         }
+        // std::cout << std::endl;
     }
 
     // Test if has more harmonics then others
