@@ -5,8 +5,6 @@
 
 #include <SDL2/SDL.h>
 
-#include <string>
-
 
 // Audio related configs
 const int SAMPLE_RATE = 96000 * 2;
