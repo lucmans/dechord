@@ -16,7 +16,7 @@ LIBS = -lSDL2 -lfftw3f -lm -fopenmp
 CORES = 20
 
 BIN = dechord
-OBJ = main.o gensound.o fourier.o config.o graphics.o find_peaks.o note_set.o
+OBJ = main.o gensound.o fourier.o config.o graphics.o find_peaks.o note_set.o music_file.o
 
 
 .PHONY: all clean valgrind lines todo upload zip clean
@@ -30,13 +30,13 @@ $(BIN): $(OBJ)
 	$(CXX) $(CXXFLAGS) $(WARNINGS) $(OPTIMIZATIONS) -o $@ $^ $(LIBS)
 
 
-main.o: main.cpp gensound.h fourier.h config.h graphics.h
+main.o: main.cpp gensound.h fourier.h config.h graphics.h music_file.h
 	$(CXX) $(CXXFLAGS) $(WARNINGS) $(FLAGS) $(OPTIMIZATIONS) -c $<
 
 gensound.o: gensound.cpp gensound.h config.h
 	$(CXX) $(CXXFLAGS) $(WARNINGS) $(FLAGS) $(OPTIMIZATIONS) -c $<
 
-fourier.o: fourier.cpp fourier.h config.h graphics.h find_peaks.h note_set.h
+fourier.o: fourier.cpp fourier.h config.h graphics.h find_peaks.h note_set.h music_file.h
 	$(CXX) $(CXXFLAGS) $(WARNINGS) $(FLAGS) $(OPTIMIZATIONS) -c $<
 
 config.o: config.cpp config.h
@@ -49,6 +49,9 @@ find_peaks.o: find_peaks.cpp find_peaks.h config.h
 	$(CXX) $(CXXFLAGS) $(WARNINGS) $(FLAGS) $(OPTIMIZATIONS) -c $<
 
 note_set.o: note_set.cpp note_set.h config.h
+	$(CXX) $(CXXFLAGS) $(WARNINGS) $(FLAGS) $(OPTIMIZATIONS) -c $<
+
+music_file.o: music_file.cpp
 	$(CXX) $(CXXFLAGS) $(WARNINGS) $(FLAGS) $(OPTIMIZATIONS) -c $<
 
 # %.o: %.cpp $(wildcard *.h)

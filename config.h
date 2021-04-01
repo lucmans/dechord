@@ -5,6 +5,8 @@
 
 #include <SDL2/SDL.h>
 
+#include <string>
+
 
 // Audio related configs
 const int SAMPLE_RATE = 96000 * 2;
@@ -38,6 +40,8 @@ const int DEFAULT_RES[2] = {1024, 768};
 struct Settings {
     bool test_tone = false;
     bool generate_sine = false;
+
+    bool play_file = false;
 };
 extern Settings settings;
 

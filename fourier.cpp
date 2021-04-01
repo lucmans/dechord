@@ -5,6 +5,7 @@
 #include "gensound.h"
 #include "find_peaks.h"
 #include "note_set.h"
+#include "music_file.h"
 
 #include <omp.h>
 #include <fftw3.h>
@@ -100,6 +101,14 @@ int low_pass(int hz) {
 void read_window(SDL_AudioDeviceID &in_dev, float *in) {
     if(settings.generate_sine) {
         write_sinef(freq, in, 0, WINDOW_SAMPLES);
+        return;
+    }
+
+    if(settings.play_file) {
+        if(!file_get_samples(in, WINDOW_SAMPLES)) {
+            std::cout << "Finished playing file; quitting" << std::endl;
+            set_quit();
+        }
         return;
     }
 

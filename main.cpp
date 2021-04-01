@@ -4,6 +4,7 @@
 #include "config.h"
 #include "graphics.h"
 #include "note_set.h"
+#include "music_file.h"
 
 #include <omp.h>
 #include <SDL2/SDL.h>
@@ -107,7 +108,18 @@ void print_audio_settings(SDL_AudioSpec &specs, bool input) {
 
 void parse_args(int argc, char *argv[]) {
     for(int i = 1; i < argc; i++) {
-        if(strcmp(argv[i], "-o") == 0 && argc > i + 1) {
+        if(strcmp(argv[i], "-f") == 0 && argc > i + 1) {
+            settings.play_file = true;
+            load_file(argv[i + 1]);
+            std::cout << "Finished reading samples from " << argv[i + 1] << std::endl;
+
+            i++;
+        }
+        else if(strcmp(argv[i], "-o") == 0 && argc > i + 1) {
+            std::cout << "File output not implemented" << std::endl;
+            i++;
+        }
+        else if(strcmp(argv[i], "-p") == 0 && argc > i + 1) {
             if(argc > i + 2) {
                 int n;
                 try {
@@ -133,7 +145,9 @@ void parse_args(int argc, char *argv[]) {
 
             std::cout << "Flags:\n"
                       // << "  -c    - Compute "
-                      << "  -o <note> <n> - Print n overtones of note\n"
+                      << "  -f <file>     - Get samples from file (.wav) instead of input device"
+                      << "  -o <file>     - File to which the output gets written"
+                      << "  -p <note> <n> - Print n overtones of note\n"
                       << "  -s            - Generate sine instead of listening to input device\n"
                       << "  -t            - Play test sound over speakers\n"
                       << std::endl;
@@ -198,7 +212,6 @@ int main(int argc, char *argv[]) {
               << "Window length: " << (double)WINDOW_SAMPLES / SAMPLE_RATE << 's' << std::endl;
 
     fourier(in_dev, graphics);
-
 
     SDL_CloseAudioDevice(in_dev);
     SDL_CloseAudioDevice(out_dev);

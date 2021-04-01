@@ -172,9 +172,9 @@ void NoteSet::get_likely_notes(std::vector<const Note*> &out) const {
         return;
     }
 
-    for(auto &a : notes)
-        std::cout << a << ' ';
-    std::cout << std::endl;
+    // for(auto &a : notes)
+    //     std::cout << a << ' ';
+    // std::cout << std::endl;
 
     // First find the number of possible harmonics for each note
     std::vector<int> n_harmonics(n_notes, 0);
