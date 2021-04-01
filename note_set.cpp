@@ -31,9 +31,9 @@ const std::string stringify_sub(int n) {
 
 // TODO: Interpolate on dB spectrum for higher accuracy
 double interpolate_max(const int max_idx, const double norms[(WINDOW_SAMPLES / 2) + 1]) {
-    const double a = norms[max_idx - 1],
-                 b = norms[max_idx],
-                 c = norms[max_idx + 1];
+    const double a = log2(norms[max_idx - 1]),
+                 b = log2(norms[max_idx]),
+                 c = log2(norms[max_idx + 1]);
     const double p = 0.5 * ((a - c) / (a - (2.0 * b) + c));
 
     return max_idx + p;
@@ -41,9 +41,9 @@ double interpolate_max(const int max_idx, const double norms[(WINDOW_SAMPLES / 2
 
 // TODO: Interpolate on dB spectrum for higher accuracy
 double interpolate_max(const int max_idx, const double norms[(WINDOW_SAMPLES / 2) + 1], double &amp) {
-    const double a = norms[max_idx - 1],
-                 b = norms[max_idx],
-                 c = norms[max_idx + 1];
+    const double a = log2(norms[max_idx - 1]),
+                 b = log2(norms[max_idx]),
+                 c = log2(norms[max_idx + 1]);
     const double p = 0.5 * ((a - c) / (a - (2.0 * b) + c));
 
     amp = b - (0.25 * (a - c) * p);
@@ -240,7 +240,7 @@ std::ostream& operator<<(std::ostream &s, const NoteSet &noteset) {
 //     return s;
 // }
 
-void print_notevec(const std::vector<const Note*> note_vec) {
+void print_notevec(const std::vector<const Note*> &note_vec) {
     const int n_notes = note_vec.size();
     if(n_notes == 0) {
         std::cout << "{}" << std::endl;
@@ -256,4 +256,11 @@ void print_notevec(const std::vector<const Note*> note_vec) {
     for(int i = 1; i < n_notes; i++)
         std::cout << ", " << note_vec[i]->freq;
     std::cout << '}' << std::endl;
+}
+
+void in_range(std::vector<const Note*> &note_vec) {
+    for(int i = note_vec.size() - 1; i >= 0; i--) {
+        if(note_vec[i]->freq < MIN_FREQ || note_vec[i]->freq > MAX_FREQ)
+            note_vec.erase(note_vec.begin() + i);
+    }
 }

@@ -109,6 +109,8 @@ void read_window(SDL_AudioDeviceID &in_dev, float *in) {
             std::cout << "Finished playing file; quitting" << std::endl;
             set_quit();
         }
+
+        SDL_Delay(1000.0 * (double)WINDOW_SAMPLES / (double)SAMPLE_RATE);
         return;
     }
 
@@ -251,6 +253,10 @@ void fourier(SDL_AudioDeviceID &in_dev, Graphics &graphics) {
 
         std::vector<const Note*> likely;
         noteset.get_likely_notes(likely);
+
+        // Remove all fundamental candidates which are outside of the dynamic range of a guitar
+        in_range(likely);
+
         print_notevec(likely);
 
         // std::cout << noteset << std::endl;

@@ -145,8 +145,8 @@ void parse_args(int argc, char *argv[]) {
 
             std::cout << "Flags:\n"
                       // << "  -c    - Compute "
-                      << "  -f <file>     - Get samples from file (.wav) instead of input device"
-                      << "  -o <file>     - File to which the output gets written"
+                      << "  -f <file>     - Get samples from file (.wav) instead of input device\n"
+                      << "  -o <file>     - File to which the output gets written\n"
                       << "  -p <note> <n> - Print n overtones of note\n"
                       << "  -s            - Generate sine instead of listening to input device\n"
                       << "  -t            - Play test sound over speakers\n"
