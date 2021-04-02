@@ -95,8 +95,8 @@ void load_file(const std::string &name) {
         std::cout << "Error: Invalid subchunk size (likely not PCM encoded)" << std::endl;
         exit(-1);
     }
-    if(fc.audio_format != 3) {
-        std::cout << "Error: Invalid audio format (not IEEE Float)" << std::endl;
+    if(fc.audio_format != 1 && fc.audio_format != 3) {
+        std::cout << "Error: Invalid audio format (not 24-bit int or IEEE Float)" << std::endl;
         exit(-1);
     }
     if(fc.n_channels != 1) {
@@ -107,7 +107,7 @@ void load_file(const std::string &name) {
         std::cout << "Error: Sample rate is not 192000 Hz" << std::endl;
         exit(-1);
     }
-    if(fc.bits_per_sample != 32) {
+    if(fc.bits_per_sample != 24 && fc.bits_per_sample != 32) {
         std::cout << "Error: Incorrect number of bits per sample" << std::endl;
         exit(-1);
     }
@@ -124,13 +124,27 @@ void load_file(const std::string &name) {
 
     uint32_t size;
     file.read((char *)&size, 4);
-    if(size % 4 != 0) {
+    if(size % 3 != 0 && size % 4 != 0) {  // 3 for 24-bit int and 4 for 32 bit float
         std::cout << "Error: File ends with incomplete sample" << std::endl;
         exit(-1);
     }
     song_size = size;
-    song_n_samples = size / 4;
     
+    // TODO: Add 24-bit int support
+    if(fc.audio_format == 1) {
+        std::cout << "Error: 24 bit int currently not supported, but could be added in " << __FILE__ << " on line " << __LINE__ << std::endl;
+        // Read all ints and convert to floats and put floats in song_samples
+        exit(-1);
+    }
+    else if(fc.audio_format == 3) {
+        // float code
+    }
+    else {
+        std::cout << "Error in code at audio format checking" << std::endl;
+        exit(-1);
+    }
+
+    song_n_samples = size / 4;
     song_samples = new (std::nothrow) float[size / 4];
     if(song_samples == nullptr) {
         std::cout << "Error: Couldn't allocate buffer for song samples" << std::endl;
@@ -140,5 +154,5 @@ void load_file(const std::string &name) {
 
     file.read(buf, 1);
     if(!file.eof())
-        std::cout << "Trailing data is ignored" << std::endl;
+        std::cout << "Warning: Trailing data is ignored" << std::endl;
 }
