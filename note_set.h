@@ -13,7 +13,6 @@
 
 
 // Given a peak at max_idx (can't be first or last of norms), interpolate actual peak location
-// TODO: Interpolate on dB spectrum for higher accuracy
 double interpolate_max(const int max_idx, const double norms[(WINDOW_SAMPLES / 2) + 1]);
 double interpolate_max(const int max_idx, const double norms[(WINDOW_SAMPLES / 2) + 1], double &amp);
 

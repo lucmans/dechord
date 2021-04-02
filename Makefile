@@ -19,7 +19,7 @@ BIN = dechord
 OBJ = main.o gensound.o fourier.o config.o graphics.o find_peaks.o note_set.o music_file.o
 
 
-.PHONY: all clean valgrind lines todo upload zip clean
+.PHONY: all clean valgrind lines todo upload zip
 
 
 all:

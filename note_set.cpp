@@ -29,7 +29,6 @@ const std::string stringify_sub(int n) {
 }
 
 
-// TODO: Interpolate on dB spectrum for higher accuracy
 double interpolate_max(const int max_idx, const double norms[(WINDOW_SAMPLES / 2) + 1]) {
     const double a = log2(norms[max_idx - 1]),
                  b = log2(norms[max_idx]),
@@ -39,7 +38,6 @@ double interpolate_max(const int max_idx, const double norms[(WINDOW_SAMPLES / 2
     return max_idx + p;
 }
 
-// TODO: Interpolate on dB spectrum for higher accuracy
 double interpolate_max(const int max_idx, const double norms[(WINDOW_SAMPLES / 2) + 1], double &amp) {
     const double a = log2(norms[max_idx - 1]),
                  b = log2(norms[max_idx]),

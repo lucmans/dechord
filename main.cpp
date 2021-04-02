@@ -15,9 +15,6 @@
 #include <csignal>
 #include <string>
 
-#include <limits>
-#include <ios>
-
 
 void play_test_tone(SDL_AudioDeviceID &out_dev) {
     const int samples = SAMPLE_RATE * 4;
