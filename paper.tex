@@ -6,7 +6,9 @@
 \usepackage[english]{babel}
 \usepackage[stretch=10, shrink=10]{microtype}
 \usepackage[a4paper, total={6.5in, 9in}]{geometry}
-% \usepackage{graphicx}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
 \usepackage{amsmath}
 \usepackage{multirow}
 \usepackage{xcolor}
@@ -41,19 +43,19 @@ Automatic Music Transcription (AMT) is a field of study which tries to convert a
 
 Single pitch estimation can be accurately performed using simple mathematical models~\cite{mono}. Multi pitch estimation is much harder as harmonic overtones are difficult to differentiate from the fundamental notes~\cite{oud}. Because of this, most recent methods use machine learning or artificial intelligence. These methods are not well suited for real-time transcription. Also, no actual (mathematical) understanding of the problem is gained. Because of this, this paper will focus on mathematically solving this problem. Even if the methods researched in this paper might not outperform ML/AI solutions by themselves, they could be used to filter the input data for the ML/AI approaches. This might in turn improve the results of the AI/ML methods significantly.
 
-Pitch estimation can also be divided in a few subproblems. If a paper focusses on one of these subproblems, it also has to solve the other subproblems in order to test the system. Most papers do not publish their source code, which makes building upon other's work difficult, as often only the subproblem of interest is described. It also limits the research of the interaction between different solutions for the different subproblems. Because of this, we provide a framework in which can be built upon, as the implementation of a subproblem can easily be interchanged with another. The code can be found on "github.com/lucmans/dechord".
+Pitch estimation can be divided into a few subproblems. If a paper focusses on one of these subproblems, it also has to solve the other subproblems in order to test the system. Most papers do not publish their source code, which makes building upon other's work difficult. It also limits the research of the interaction between different solutions for the different subproblems. Because of this, we provide a framework in which can be built upon, as the implementation of a subproblem can easily be interchanged with another. The code can be found on "github.com/lucmans/dechord".
 
 In short, the goal of this paper is developing a program which can translate a guitar signal to a set of observed notes in real-time. We also provide an algorithm which can estimate a set of played notes using the set of observed notes. The code should be publically available and easily extensible so others can optimize a subproblem without having to solve the other subproblems.
 
-Do note that this paper is a preliminary paper for a possible master thesis. The focus is on building a prototype which can perform monophonic AMT and presenting a first draft of a polyphonic version. Using this information, we will estimate if the thesis project is feasible.
+Note that this paper is a preliminary paper for a possible master thesis. The focus is on building a prototype which can perform monophonic AMT and presenting a first draft of a polyphonic version. Using this information, we will estimate if the thesis project is feasible.
 
 
 \section{Related work}
 Spectral peak picking based AMT methods are often deemed infeasible for real-time AMT~\cite{hater}, due to the relatively low resolution in the low frequencies when using the Fourier transform~\cite{theoretisch}. This problem cannot be alleviated by zero-padding the Fourier transform input, as it does not add any information, it merely increases the resolution by interpolation~\cite{infomax}\cite{infomax2} and increases the computing time of the transform~\cite{boek}. However, using quadratic interpolation, we can very accurately interpolate peaks within Fourier frequency bins~\cite{interpol}. Also, other transforms such as the constant Q transform~\cite{cqt} which do provide more resolution in lower frequencies are getting more popular, which will allow us to differentiate two notes on a very small interval.
 
-Another problem is choosing the real-time constraint for processing the input. Some papers claim 140 ms is sufficient~\cite{sloomboi}. This is however ridiculously long, as it would be more than a note difference when playing eight notes in 120 BPM. Also, as there is already a large latency due to how audio drivers work~\cite{os}. In practice, musicians often tweak their audio driver settings in order to gain 5 to 10 ms in latency, which makes the difference between being able to play faster pieces or not.
+A big problem in polyphonic pitch estimation is the occurrence of overtones~\cite{oud}. As these overtones also have a periodic nature in the frequency domain, they can be detected using another Fourier transform~\cite{double}. This does however have a big impact on the latency, as performing a Fourier transform is computationally expensive. Also, notes which are at octave intervals have the same periodicity~\cite{octave}, which makes them difficult to distinguish.
 
-A big problem in polyphonic pitch estimation is the occurrence of overtones~\cite{oud}. As these overtones also have a periodic nature in the frequency domain, they can be detected using another Fourier transform~\cite{double}. This does however have a big impact on the latency, as performing a Fourier transform is computationally expensive.
+Another problem is choosing the real-time constraint for processing the input. Some papers claim 140 ms is sufficient~\cite{sloomboi}. This is however ridiculously long, as it would be about a note difference when playing eight notes in 200 BPM. Also, as there is already a large latency due to how audio drivers work~\cite{os}. In practice, musicians often tweak their audio driver settings in order to gain 5 to 10 ms in latency, which makes the difference between being able to play faster pieces or not.
 
 When limiting ourselves to transcribing a guitar, we can use physical limitations of the instrument to our advantage~\cite{physical}. However, this forces the guitarist to use the guitar in a specific way. For instance, these methods fail when the strings are tuned to different notes.
 
@@ -63,26 +65,26 @@ When limiting ourselves to transcribing a guitar, we can use physical limitation
 
 
 \section{Pitch estimation}
-Automatic music transcription can be separated into two main problems; onset detection and pitch estimation~\cite{survey2}. In this paper, we will focus on pitch estimation. Because we always output the set of played notes for the last analysed frame, we do not require onset information. However, this information can improve the results of pitch estimation. For example, when a onset is detected, we can discard all samples from the transient.
+Automatic music transcription can be separated into two main problems; onset detection and pitch estimation~\cite{survey2}. In this paper, we will focus on pitch estimation. Because we always output the set of played notes for the last analysed frame, we do not require onset information. However, this information can improve the results of pitch estimation. For example, when an onset is detected, we can discard all samples from the transient.
 
-As stated before, our goal is to perform the transcription in real-time. We choose a constraint of 6 ms. Most musicians work with a driver latency of 9 to 11 ms. On a good computer, this latency can be reduced to 3-5 ms. We will use these 6 ms of latency difference to perform our calculations in. Note that when playing more notes per second, latency becomes more of a problem. On slower pieces, we can get away with much larger latencies. In order to test this for yourself, we developed a tool which plays back the incoming audio signal with a user specifiable delay. This tool can be found under the "latency" branch in our GitHub. 
+As stated before, our goal is to perform the transcription in real-time. We choose a constraint of 6 ms. Most musicians work with a driver latency of 9 to 11 ms. On a good computer, this latency can be reduced to 3-5 ms. We will use these 6 ms of latency difference to perform our calculations in. Note that when playing more notes per second, latency becomes more of a problem. On slower pieces, we can get away with much larger latencies. In order to test this for yourself, we developed a tool which plays back the incoming audio signal with a user specifiable delay. This tool can be found under the "latency" branch in our GitHub repository. 
 
 Pitch detection can be broken down into a few subproblems. First, a frequency domain representation of the signal is obtained (e.g. Fourier transform). Then, significant peaks have to be selected from the frequency domain. Based on the found peaks, we have to determine what notes were actually played on the instrument.
 
 \subsection{Transform to frequency domain}
 To estimate the frequency components of a frame, transforms are used. Most commonly, the Fourier transform is used as it is the most researched transform and much is known about it~\cite{survey2}. Its main downside is that the frequency bins are constant is size, where the distance between notes increases exponentially. Because of this, low notes are hard to discern in the frequency domain where high notes have more resolution than needed. Because of this, other transforms such as the constant Q transform (CQT) are getting more popular.
 
-When using the Fourier transform, window functions have to by applied to the frames to prevent spectral leakage. Furthermore, the actual peak locations can be accurately interpolated using (Lagrangian) quadratic interpolation~\cite{interpol}. These concepts are further described in Section~\ref{sub:four}.
+When using these transforms, window functions have to by applied to the frames to prevent spectral leakage. Furthermore, the actual peak locations can be accurately interpolated using (Lagrangian) quadratic interpolation~\cite{interpol}. These concepts are further described in Section~\ref{sub:four} and Section~\ref{sub:peak} respectively.
 
 \subsection{Peak picking}
-Peaks in the frequency domain correspond to predominant frequencies in the analysed frame. However, not every peak is of interest. Some peaks are generated by noise, especially in frequency ranges where there is no signal. These peaks can be filtered by requiring a minimal signal level to be considered a peak. Also, due to spectral leakage, peaks can be observed which are not in the original signal. Even though these peaks are minimized by using window functions, they still have to be taken into consideration. In polyphonic signals, harmonic overtones may slightly interfere (TODO: Maybe make preliminary section about overtone dissonance), which will also lead to inconsistent peaks.
+Peaks in the frequency domain correspond to predominant frequencies in the analysed frame. However, not every peak is of interest. Some peaks are generated by noise. Many of these peaks can be filtered by requiring a minimal signal level to be considered a peak. Furthermore, due to spectral leakage, peaks can be observed which are not in the original signal. This kind of noise can be minimized by choose a good window function~\cite{window}. In polyphonic signals, harmonic overtones may slightly interfere (TODO: Maybe make preliminary section about overtone dissonance), which will may lead to inconsistent and oscillating peaks.
 
-On order to determine if a peak is significant enough, we calculate a Gaussian average envelope~\cite{gauss}. For every point in a frame, the Gaussian average is a weighted average of all points in the frame. The weight is determined by the distance from the current point. The distance in number of bins goes through a Gaussian function to determine the actual weight. Here, higher values for $\sigma$ make points close by weight more compared to distant points. How this envelope is precisely calculated and used for peak picking is described in Section~\ref{sec:impl}.
+On order to determine if a peak is significant enough, we first calculate a Gaussian average envelope~\cite{gauss}. For every point in a frame, the Gaussian average is a weighted average of all points in the frame. The weight is determined by the distance from the current point. The distance in number of bins goes through a Gaussian function to determine the actual weight. Here, higher values for $\sigma$ make points close by weight more compared to distant points. How this envelope is precisely calculated and used for peak picking is described in Section~\ref{sub:peak}.
 
 \subsection{Note sets}
 Given the spectral peaks from the previous step, we can try to calculate what notes they represent. Unfortunately, the found peaks do not only contain fundamental frequencies, but also harmonic overtones. This is only a small problem in monophonic transcription, as there is only one fundamental frequency and its overtones. However, in the polyphonic case, it is difficult to determine which peaks are fundamentals and by extension know how many notes are played at the same time.
 
-To determine if notes are fundamentals or overtones, we use a "harmonic overtone sieve". Here, we look if any higher peak can be explained by the currently considered peak. The more other peaks a peak can explain, the more likely it is to be a fundamental. Moreover, if we can't explain some peaks based on the lowest peak, we know there was a second note in the source signal.
+To determine if notes are fundamentals or overtones, we use a "harmonic overtone sieve". Here, we look if any higher peak can be explained by the currently considered peak. The more other peaks a peak can explain, the more likely it is to be a fundamental. Moreover, if we cannot explain a certain peak, it is likely that there is a second note in the source signal.
 
 
 \section{Implementation}  \label{sec:impl}
@@ -95,18 +97,28 @@ By default, the program assumes an $A_4$ of 440 Hz. This can also be edited in \
 \subsection{Transform to frequency domain}  \label{sub:four}
 Our program uses the Fourier transform to obtain the frequency domain representation. We choose this transform as FFTW provides a very fast implementation. This speed is necessary for the real-time constrains on our system.
 
-The resolution of the Fourier transform is dependent on the number of samples in a frame. We sample the guitar signal at 192 kHz, which is the maximum sample rate for most audio interfaces. To allow guitarists to play mildly fast, we have to limit our frame length. If the frame size if too large, multiple separate notes may be included in one transform, which would make it seem like the notes were played at the same time. Moreover, frame sizes which are a power of two can be transformed more efficiently, which further restricts are frame size choice. We chose a frame size of 16584 samples, which at 192 kHz is 0.085 seconds (11.72 frames per second). This gives us a Fourier bin size of 11.72 Hz. At first glance, such a large bin size seems like a big problem, as the smallest interval that can be played on a guitar (G\#\textsubscript{2}-A\textsubscript{2}) is about 6 Hz. However, the overtones of these notes will have more Hz between them. Also, as discussed in Section~\ref{sec:future}, we might be able to increase the frame size without reducing our frame rate too much.
-
-It is possible to determine the actual peak location within a Fourier bin using quadratic interpolation~\cite{interpol2}. The lobes in the frequency domain form parabolas in a dB (logarithmic) scale, which allows quadratic interpolation to be very accurate. This interpolation is performed during the peak picking step, so only peaks that matter are interpolated.
+The resolution of the Fourier transform is dependent on the number of samples in a frame. We sample the guitar signal at 192 kHz, which is the maximum sample rate for most audio interfaces. To allow guitarists to play mildly fast, we have to limit our frame length. If the frame size if too large, multiple separate notes may be included in one transform, which would make it seem like the notes were played at the same time. Moreover, frame sizes which are a power of two can be transformed more efficiently, which further restricts are frame size choice. We chose a frame size of $2^{14} = 16384$ samples, which at 192 kHz is 0.085 seconds (11.72 frames per second). This gives us a Fourier bin size of 11.72 Hz. At first glance, such a large bin size seems like a big problem, as the smallest interval that can be played on a guitar (G\#\textsubscript{2}-A\textsubscript{2}) is about 6 Hz. However, the overtones of these notes will have more Hz between them, which makes to possible to differentiate the two notes.% Also, as discussed in Section~\ref{sec:future}, we might be able to increase the frame size without reducing our frame rate too much.
 
 Before applying a transform, a window function is often applied to minimize the artefacts produced by the transform. In this paper, we mainly use the Blackman-Nuttall window, but the following windows are also provided: Hamming window, Hann window, Blackman window, Nuttall window, Blackman-Harris window, Flat top window. Other window functions can easily be added.
 
-\subsection{Peak picking}
+\subsection{Peak picking} \label{sub:peak}
 Three different peak picking algorithms have been implemented. The first picks every local maximum (every \texttt{i} where \texttt{data[i - 1] < data[i] \&\& data[i] > data[i + 1]}). The other two algorithms pick peaks based on a Gaussian average envelope. One algorithm picks all peaks which are above this average and the other only picks the highest peak for each spectral lobe above this average. Using this envelope, we effectively filter small local maxima close to large local maxima.
 
-The Gaussian average envelope is calculated by taking the weighted average of a configurable number of samples in a Fourier window. The weights are determined by a Gaussian function ($e^{-\pi(\frac{x}{\sigma})^2}$) where the mean is the point in the envelope which is calculated. The value of sigma can be changed in \texttt{config.h}. Higher values for $\sigma$ makes points around the mean have a higher weighting. We choose a value of 1.2, but this value could be optimized for better results.
+The Gaussian average envelope is calculated for every Fourier bin $i$ by taking the weighted average of a arbitrary number of bins around $i$. The weights are determined by a Gaussian function ($e^{-\pi(\frac{x}{\sigma})^2}$). The value of sigma and number of bins around $i$ can be changed in \texttt{config.h}. Higher values for $\sigma$ makes points around the considered point have a higher weighting. We choose a value of 1.2, but this value could be optimized for better results.
 
 Even though this envelope works well for parts of the spectrum with peaks, it will still find peaks in noisy areas without peaks. This can be prevented in two ways. The first is setting a threshold which a peak has to exceed. This will result in less sustain, but works well. Secondly, we know that peaks outside the frequency range of a guitar cannot be a fundamental frequency. We can discard peaks lower than the lowest note, but peaks higher than the highest note still provide us information as will be described in Section~\ref{sub:impnoteset}
+
+It is possible to determine the actual peak location within a Fourier bin using quadratic interpolation~\cite{interpol2}. Here, we calculate a value $p \in [-\frac{1}{2}, \frac{1}{2}]$, which is the location of the actual peak relative to the found peak in number of Fourier bins. In order to calculate $p$, we need the height of our found peak ($y(0)$) and the height of the two neighbouring bins ($y(-1)$ and $y(1)$). As quadratic interpolation is more accurate in the dB (logarithmic) scale, we define:
+\begin{center}\vspace{-1mm}
+    $\alpha = \log y(-1)$\\
+    $\beta = \log y(0)$\\
+    $\gamma = \log y(1)$
+\end{center}\vspace{-1mm}
+Then, we can calculate $p$ as follows:
+\begin{center}\vspace{-1mm}
+    $p = \frac{1}{2} \frac{\alpha - \gamma}{\alpha - 2\beta + \gamma}$
+\end{center}\vspace{-1mm}
+Given the Fourier bin size, we can calculate the frequency of the peak $i$ by multiplying the bin size by $i + p$.
 
 \subsection{Note sets}  \label{sub:impnoteset}
 Using all the found peaks, we can determine which peaks are overtones and which are fundamentals. First, we determine which notes the frequencies represent and calculate the error on these notes. The error is calculated as the number of cents from the closest harmonic note. The errors are different for every overtone (the series of errors is constant for every harmonic overtone series), as overtones are dissonant compared to equal temperament tuning. See Table~\ref{tab:overseries} for an example.
@@ -132,30 +144,90 @@ Creating a monophonic algorithm is relatively easy given the frequencies of the 
 
 Due to small errors, the overtones are not exactly integer multiples of the fundamental. As the distance between notes increases with frequency, we cannot set a constant threshold of error in Hz. Instead, we calculate the error in cents and choose a threshold for this error (configurable in \texttt{config.h}). This also allows for equal error tolerance above and below the note, which percentage based methods would not.
 
-Polyphonic note detection can use a algorithm similar to the monophonic algorithm. As the number of played notes in unknown in the polyphonic case, we have to determine if a note is a fundamental or overtone. We cannot just set a threshold for the number of overtones a fundamental should have, because the number of detected overtones is very inconsistent. To solve this, we present a harmonic overtone sieve algorithm. Instead of directly looking for fundamentals, we try to sieve away all harmonics until we are left with fundamentals. We start at the lowest peak end mark all its possible overtones. If there are still unmarked peaks left, they are likely from another note. We can repeat this process until no more peaks can be sieved.
+Polyphonic note detection can use a algorithm similar to the monophonic algorithm. As the number of played notes in unknown in the polyphonic case, we have to determine if a note is a fundamental or overtone. We cannot just set a threshold for the number of overtones a fundamental should have, because the number of detected overtones is very inconsistent. To solve this, we present a harmonic overtone sieve algorithm. Instead of directly looking for fundamentals, we try to sieve away all harmonics until we are left with fundamentals. We start at the lowest peak end mark all its possible overtones. If there are still unmarked peaks left, they are likely from another note and we sieve its overtones away. We can repeat this process until no more peaks can be sieved.
 
 After this, we can remove all peaks which are outside of the frequency range of a guitar. The minimum and maximum can be changed in \texttt{config.h} to accommodate for different tunings of guitars with extra strings.
 
-\subsection{UI}
-TODO: User interface and user interaction description.
-
 \subsection{Latency}
-The latency of our system can be divided in two different latencies, the time to fill a frame with samples and frame processing time. Because our algorithm works on a "per frame" basis instead of a "per sample" basis, we have to wait until the audio driver has fetched enough samples for us to fill a frame. The time it takes to start analysing a frame after receiving the first sample of this frame can be calculated by dividing the number of samples per frame by the sample rate. This is equal to the length of a frame. However,
+The latency of our system can be divided in two different latencies, the time to fill a frame with samples and frame processing time. Because our algorithm works on a "per frame" basis instead of a "per sample" basis, we have to wait until the audio driver has fetched enough samples for us to fill a frame. The time it takes to start analysing a frame after receiving the first sample of this frame can be calculated by dividing the number of samples per frame by the sample rate. This is equal to the length of a frame. In practical terms, it is the maximum latency on detecting a newly played note. The average latency is obtained by dividing this number by two.
 
-We use a frame size of 16384 samples and a sample rate of 192000 samples per second, which equates to a frame length of 85.3 ms. This is well over our real-time constraint. Unfortunately, we cannot change this value too much. The sample rate is already at the maximum of most audio interfaces. We also cannot lower the number of samples per frame while using the Fourier transform, as it would further reduce the frequency resolution. However, as will be explained in Section~\ref{sub:futlaten}, this might not be a problem, as we can greatly reduce this latency by employing multi-threading.
+We use a frame size of 16384 samples and a sample rate of 192000 samples per second, which equates to a frame length of 85.3 ms. This is well over our real-time constraint. Unfortunately, we cannot change this value too much. The sample rate is already at the maximum of most audio interfaces. We also cannot lower the number of samples per frame while using the Fourier transform, as it would further reduce the frequency resolution. However, as will be explained in Section~\ref{sub:futlaten}, this might not be a problem, as we can reduce this latency by employing multi-threading.
 
-We can control the second kind of latency by optimizing our algorithms. In Section~\ref{sub:algspeed}, we will measure the processing time of the different algorithms. 
+We can control the second kind of latency by optimizing our algorithms. In Section~\ref{sec:exp}, we will measure the processing time of the different algorithms.
 
 
 \section{Experiments}  \label{sec:exp}
-We will perform a few experiments to test our system. The used audio equipment has a large effect on the results and in turn effects what parameters work best for the system. During development, an electric guitar with active humbucker pickups was used. To convert the analog signal to a sampled digital signal, a Behringer UMC404HD was used. This audio interface has a dynamic range of 100 dB. Like most audio interfaces, this is much less than the dynamic range of a sample (144 dB for 24 bit integer). We opted not to amplify the signal in software, as it will distort it. Also, if amplification is not done carefully, the signal will peak, which means that peaks are cut off. The tests were performed on an AMD 3700X CPU.
+We will perform a few experiments to test our system. The used audio equipment has a large effect on the results and in turn effects what parameters work best for the system. During development, an electric guitar with active EMC humbucker pickups was used. To convert the analog signal to a sampled digital signal, a Behringer UMC404HD was used. This audio interface has a dynamic range of 100 dB. Like most audio interfaces, this is much less than the dynamic range of a sample (144 dB for 24 bit integer). We opted not to amplify the signal in software, as it will distort it; especially if not done carefully. The tests were performed on an AMD 3700X CPU.
 
-Often used datasets for evaluating pitch estimation focus on different goals than this paper. For instance, they focus on transcribing multiple instruments at once or having instrument invariance. They also do not focus on real-time transcription, which makes the problem much harder. However, in order to present some comparative measure, we will use the Mirex dataset for "Multiple Fundamental Frequency Estimation \& Tracking"~\cite{data}. TODO: This dataset consists of actual songs.
+Often used datasets for evaluating pitch estimation focus on different goals than this paper. For instance, they focus on transcribing multiple instruments at once or having instrument invariance. They also do not focus on real-time transcription, which makes the problem much harder. However, in order to present some comparative measure, we will use the Mirex dataset for "Multiple Fundamental Frequency Estimation \& Tracking"~\cite{data}. TODO (when I receive it): Short description of dataset.
 
-We also constructed our own dataset to evaluate the performance. This dataset will be a more technical dataset containing scales and intervals played on a guitar. Scales allow us to measure the monophonic performance. As scales are easy to play, multiple recordings should have the same results. This allows us to isolate and measure other variables, such as the effect of tempo or playing the scale higher/lower. Recordings of different intervals allow us to measure the polyphonic performance. By measuring all two note intervals, we can identify any problems with specific intervals. As the distance in frequency in an interval increases when the same interval is played at higher notes, we record the intervals at multiple root notes. We will also measure the performance on the four basic triads: the major triad, minor triad, augmented triad and diminished triad.
+We also constructed our own dataset to evaluate the performance. This dataset will be a more technical dataset; consisting of scales and intervals played on a guitar. Scales allow us to measure the monophonic performance. As scales are easy to play, multiple recordings should have the same results. This allows us to isolate and measure other variables, such as the effect of tempo or playing the scale higher/lower. Recordings of different intervals allow us to measure the polyphonic performance. By measuring all two note intervals, we can identify any problems with specific intervals. As the distance in frequency in an interval increases when the same interval is played at higher notes, we record the intervals at multiple root notes. We will also measure the performance on the four basic triads: the major triad, minor triad, augmented triad and diminished triad.
+
+Note that when repeating our experiments, your results may very slightly. This is because the results of the Fourier transform from FFTW are not consistent~\cite{fftw}. This is especially noticeable in inconsistent latencies.
+
+\subsection{Monophonic performance: scales}
+To test the monophonic performance of our system, we first measure the performance of scales at different pitch ranges. We expect the system to perform better at higher pitches, as the distance in frequency between is higher. The scales are played at a speed of two notes per second. This equates to playing fourth notes on 120 BPM. We play the scales at a relatively slow speed, such that this cannot become a limiting factor. The slower speed also helps to see if mistakes are the result of transients, as these mistakes should vanish as the note persists. We only play the C major scale, but change the starting note (mode). We play the full vertical scale according to this position~\cite{scale}. Each position has 17 notes, except for $\text{F}_2$, which has 18 notes. In Table~\ref{tab:monperf}, we summarize the results of the experiment. We denote the different starting positions as $n_\text{start}$. For every starting position, we denote the accuracy ($a$), the accuracy without transient errors ($a_\text{trans}$), the accuracy without octave errors $a_\text{oct}$ and the total accuracy without both of these errors ($a_\text{tot}$). The accuracy is calculated by dividing the number of correctly determined frames by the total number of frames with notes. The only frames without notes are positioned at the start and end of a file. We omitted these frames from the results, as they are always correctly determined to be empty frames.
+\begin{table}[H]\vspace{-3mm}
+    \centering
+    \begin{tabular}{r|rrrr}
+        $n_\text{start}$ & $a$ & $a_\text{trans}$ & $a_\text{oct}$ & $a_\text{tot}$ \\
+        \hline
+        $\text{E}_2$ & \% & \% & \% & \% \\
+        $\text{F}_2$ & \% & \% & \% & \% \\
+        $\text{G}_2$ & \% & \% & \% & \% \\
+        $\text{A}_2$ & \% & \% & \% & \% \\
+        $\text{B}_2$ & \% & \% & \% & \% \\
+        $\text{C}_3$ & \% & \% & \% & \% \\
+        $\text{D}_3$ & \% & \% & \% & \% \\
+        $\text{E}_3$ & \% & \% & \% & \%
+    \end{tabular}
+    \caption{Accuracy of monophonic $f_0$ estimation on C major scale at two notes per second for different starting positions.}
+    \label{tab:monperf}
+\end{table}\vspace{-3mm}
+As mentioned before, our system is not yet resilient against noise from transients. Also, solving the octave problem is outside the scope of this paper. Because of this, we also list the results ignoring these problems. TODO: reflect on results
+
+\subsection{Polyphonic performance: intervals}
+To test the polyphonic performance of our system, we let it determine the played notes in an interval. We will play every interval within an octave to test if there are any problems with separating the notes in specific intervals. For instance, some interference may cause oscillating peaks in the frequency domain. Again, we will try all the intervals at different root notes, as especially for intervals the pitch of the root note may make a big difference. Even though the overtones of low pitched notes in small intervals might make it possible to distinguish the individual notes, we might not detect enough overtones to actually do so. In Table~\ref{tab:polperf} is a summary of the results. Here, we list the number of semitones $n$ between the two notes in an interval, if both notes were correctly found (yes or no) and if there were other notes reported which were not transients.
+\begin{table}[H]\vspace{-3mm}
+    \centering
+    \begin{tabular}{r|rr}
+        $n$ & both & other \\
+        \hline
+        1  &  &  \\
+        2  &  &  \\
+        3  &  &  \\
+        4  &  &  \\
+        5  &  &  \\
+        6  &  &  \\
+        7  &  &  \\
+        8  &  &  \\
+        9  &  &  \\
+        10 &  &  \\
+        11 &  & 
+    \end{tabular}
+    \caption{Performance of distinguishing notes in an interval with root note $\text{A}_2$.}
+    \label{tab:polperf}
+\end{table}\vspace{-3mm}
+In the tables, we can see that... (not enough overtones for low pitched intervals...)
 
 \subsection{Latency}  \label{sub:algspeed}
-The processing time of our system is very important, as it will directly impact the latency. 
+The processing time of our system is very important, as it will directly impact the latency. We will only measure the time between receiving a frame from the audio driver until the answer is computed, as the time spent waiting on enough samples is fully determined by the number of samples in a frame and the sampling rate. The total processing time and the processing time of the individual steps and the total system can be seen in Figure~\ref{fig:snel}.
+\begin{figure}[H]%\vspace{-2mm}
+    \centering
+    \begin{subfigure}{.49\textwidth}
+        \centering
+        % \includegraphics[width=\linewidth]{figures/circarea_low.png}
+        \captionof*{figure}{Scales}
+    \end{subfigure}
+    \begin{subfigure}{.49\textwidth}
+        \centering
+        % \includegraphics[width=\linewidth]{figures/circarea_high.png}
+        \captionof*{figure}{Intervals}
+    \end{subfigure}
+    \caption{Processing time of the different algorithms}
+    \label{fig:snel}
+\end{figure}%\vspace{-4mm}
+TODO: The results are what they are...
 
 
 \section{Conclusions}
@@ -163,7 +235,7 @@ adsf
 
 
 \section{Future work}  \label{sec:future}
-How to make results more consistent (onset detection, transient filtering). How to make the project more real-time (threading rolling transforms). Also deliberately detuning strings for better results. Amplification->more overtones detected but also more noise.
+How to make results more consistent (onset detection, transient filtering). How to make the project more real-time (threading rolling transforms). Also deliberately detuning strings for better results. Amplification->more overtones detected but also more noise. Remove spikes in latency by saving FFTW wisdom.
 
 This algorithm has some problems in its current form. Solving these is outside of the scope of this paper and will be the topic of the follow-up thesis, but we will address the problems here. The first big problem is transients. They will appear as many random peaks in the frequency domain. Many of these peaks will be outside of the fundamental frequency range of a guitar, but not all of them, so discarding all high peaks does not solve the problem. Usually, during transients, there any significantly more peaks and even multiple peaks within one note. If this can pattern can consistently be detected, samples can be discarded until the transient is filtered. Another problem is the resolution in the lower frequencies.
 
