@@ -144,7 +144,7 @@ Creating a monophonic algorithm is relatively easy given the frequencies of the 
 
 Due to small errors, the overtones are not exactly integer multiples of the fundamental. As the distance between notes increases with frequency, we cannot set a constant threshold of error in Hz. Instead, we calculate the error in cents and choose a threshold for this error (configurable in \texttt{config.h}). This also allows for equal error tolerance above and below the note, which percentage based methods would not.
 
-Polyphonic note detection can use a algorithm similar to the monophonic algorithm. As the number of played notes in unknown in the polyphonic case, we have to determine if a note is a fundamental or overtone. We cannot just set a threshold for the number of overtones a fundamental should have, because the number of detected overtones is very inconsistent. To solve this, we present a harmonic overtone sieve algorithm. Instead of directly looking for fundamentals, we try to sieve away all harmonics until we are left with fundamentals. We start at the lowest peak end mark all its possible overtones. If there are still unmarked peaks left, they are likely from another note and we sieve its overtones away. We can repeat this process until no more peaks can be sieved.
+Polyphonic note detection can use a algorithm similar to the monophonic algorithm. As the number of played notes in unknown in the polyphonic case, we have to determine if a note is a fundamental or overtone. We cannot just set a threshold for the number of overtones a fundamental should have, because the number of detected overtones is very inconsistent. To solve this, we present a harmonic overtone sieve algorithm. Instead of directly looking for fundamentals, we try to sieve away all harmonics until we are left with fundamentals. We start at the lowest peak end mark all its possible overtones. If there are still unmarked peaks left, they are likely from another note and we sieve its overtones away. We can repeat this process until no more peaks can be sieved. If two peaks are not distinguishable in the root notes but are in the overtones, this algorithm will report the first distinguishable overtone as the root note. It is possible to calculate what the root note should have been, but that is outside the scope of this paper and will be further discussed in Section~\ref{sec:future}.
 
 After this, we can remove all peaks which are outside of the frequency range of a guitar. The minimum and maximum can be changed in \texttt{config.h} to accommodate for different tunings of guitars with extra strings.
 
@@ -166,44 +166,44 @@ We also constructed our own dataset to evaluate the performance. This dataset wi
 Note that when repeating our experiments, your results may very slightly. This is because the results of the Fourier transform from FFTW are not consistent~\cite{fftw}. This is especially noticeable in inconsistent latencies.
 
 \subsection{Monophonic performance: scales}
-To test the monophonic performance of our system, we first measure the performance of scales at different pitch ranges. We expect the system to perform better at higher pitches, as the distance in frequency between is higher. The scales are played at a speed of two notes per second. This equates to playing fourth notes on 120 BPM. We play the scales at a relatively slow speed, such that this cannot become a limiting factor. The slower speed also helps to see if mistakes are the result of transients, as these mistakes should vanish as the note persists. We only play the C major scale, but change the starting note (mode). We play the full vertical scale according to this position~\cite{scale}. Each position has 17 notes, except for $\text{F}_2$, which has 18 notes. In Table~\ref{tab:monperf}, we summarize the results of the experiment. We denote the different starting positions as $n_\text{start}$. For every starting position, we denote the accuracy ($a$), the accuracy without transient errors ($a_\text{trans}$), the accuracy without octave errors $a_\text{oct}$ and the total accuracy without both of these errors ($a_\text{tot}$). The accuracy is calculated by dividing the number of correctly determined frames by the total number of frames with notes. The only frames without notes are positioned at the start and end of a file. We omitted these frames from the results, as they are always correctly determined to be empty frames.
+To test the monophonic performance of our system, we first measure the performance of scales at different pitch ranges. The scales are played at a speed of two notes per second. This equates to playing fourth notes on 120 BPM. We play the scales at a relatively slow speed, such that this cannot become a limiting factor. The slower speed also helps to see if mistakes are the result of transients, as these mistakes should vanish as the note persists. We only play the C major scale, but change the starting note (mode). We play the full vertical scale from this starting note~\cite{scale}. Each position has 17 notes, except for $\text{F}_2$, which has 18 notes. In Table~\ref{tab:monperf}, we summarize the results of the experiment. We denote the different starting positions as $n_\text{start}$. For every starting position, we denote the accuracy ($a$), the accuracy without transient errors ($a_\text{trans}$), the accuracy without octave errors $a_\text{oct}$ and the total accuracy without both of these errors ($a_\text{tot}$). The accuracy is calculated by dividing the number of correctly determined frames by the total number of frames with notes. The only frames without notes are positioned at the start and end of a file. We omitted these frames from the results, as they are always correctly determined to be empty frames. Erroneous notes due to transients usually have a lower amplitude where octave errors usually have a higher amplitude compared the amplitude of the base note. This allows is to distinguish between them. This information cannot be used to detect transients in real-time, as we compare the amplitude of the erroneous note to amplitude of the correct note in the following frames.
 \begin{table}[H]\vspace{-3mm}
     \centering
     \begin{tabular}{r|rrrr}
         $n_\text{start}$ & $a$ & $a_\text{trans}$ & $a_\text{oct}$ & $a_\text{tot}$ \\
         \hline
-        $\text{E}_2$ & \% & \% & \% & \% \\
-        $\text{F}_2$ & \% & \% & \% & \% \\
-        $\text{G}_2$ & \% & \% & \% & \% \\
-        $\text{A}_2$ & \% & \% & \% & \% \\
-        $\text{B}_2$ & \% & \% & \% & \% \\
-        $\text{C}_3$ & \% & \% & \% & \% \\
-        $\text{D}_3$ & \% & \% & \% & \% \\
-        $\text{E}_3$ & \% & \% & \% & \%
+        $\text{E}_2$ & 91.4\% & 95.2\% & 96.2\% & 100\% \\
+        $\text{F}_2$ & 92.3\% & 96.2\% & 96.2\% & 100\% \\
+        $\text{G}_2$ & 92.0\% & 95.0\% & 97.0\% & 100\% \\
+        $\text{A}_2$ & 89.1\% & 96.0\% & 93.0\% & 100\% \\
+        $\text{B}_2$ & 90.6\% & 96.2\% & 94.3\% & 100\% \\
+        $\text{C}_3$ & 82.7\% & 95.9\% & 86.7\% & 100\% \\
+        $\text{D}_3$ & 76.6\% & 95.7\% & 80.9\% & 100\% \\
+        $\text{E}_3$ & 91.6\% & 97.9\% & 93.7\% & 100\%
     \end{tabular}
     \caption{Accuracy of monophonic $f_0$ estimation on C major scale at two notes per second for different starting positions.}
     \label{tab:monperf}
 \end{table}\vspace{-3mm}
-As mentioned before, our system is not yet resilient against noise from transients. Also, solving the octave problem is outside the scope of this paper. Because of this, we also list the results ignoring these problems. TODO: reflect on results
+We can see that the transient errors are very consistent. In our data, we noticed that the first played note almost always had a transient error. This could be because we start playing from a silent signal instead of changing from a previous note. The transient errors show up more often between lower frequency notes. The octave errors become more of a problem the higher we play. In the scales starting from $\text{A}_2$ and lower, we only see octave error at note changes. However, from $\text{B}_2$ and higher, we start to see consecutive octave errors. Here, between 50\% and 100\% of the frames of a note. During these errors, there are often noisy peaks in much lower frequency bands which throw the estimation process off. Other than these problems, the system worked perfectly.
 
 \subsection{Polyphonic performance: intervals}
-To test the polyphonic performance of our system, we let it determine the played notes in an interval. We will play every interval within an octave to test if there are any problems with separating the notes in specific intervals. For instance, some interference may cause oscillating peaks in the frequency domain. Again, we will try all the intervals at different root notes, as especially for intervals the pitch of the root note may make a big difference. Even though the overtones of low pitched notes in small intervals might make it possible to distinguish the individual notes, we might not detect enough overtones to actually do so. In Table~\ref{tab:polperf} is a summary of the results. Here, we list the number of semitones $n$ between the two notes in an interval, if both notes were correctly found (yes or no) and if there were other notes reported which were not transients.
-\begin{table}[H]\vspace{-3mm}
+To test the polyphonic performance of our system, we let it determine the played notes in an interval. We play every interval within an octave to test if there are any problems with separating the notes in specific intervals. For instance, some interference may cause oscillating peaks in the frequency domain. Again, we try all the intervals at different root notes, as especially for intervals the pitch of the root note may make a big difference. As we mentioned before, when two peaks are too close together, we cannot distinguish them. Often, the second note is distinguished an octave higher. In Table~\ref{tab:polperf} is a summary of the results. Here, we list the number of semitones $n$ between the two notes in an interval, if both notes were correctly found. If not, we denote if the second note was detected an octave higher. This often happens, because we cannot distinguish two notes in small intervals at low pitches. The last column shows if there were other notes reported which were not transients.
+\begin{table}[H]%\vspace{-3mm}
     \centering
-    \begin{tabular}{r|rr}
-        $n$ & both & other \\
+    \begin{tabular}{r|rrr}
+        $n$ & both & octave & other \\
         \hline
-        1  &  &  \\
-        2  &  &  \\
-        3  &  &  \\
-        4  &  &  \\
-        5  &  &  \\
-        6  &  &  \\
-        7  &  &  \\
-        8  &  &  \\
-        9  &  &  \\
-        10 &  &  \\
-        11 &  & 
+        1  &  &  &  \\
+        2  &  &  &  \\
+        3  &  &  &  \\
+        4  &  &  &  \\
+        5  &  &  &  \\
+        6  &  &  &  \\
+        7  &  &  &  \\
+        8  &  &  &  \\
+        9  &  &  &  \\
+        10 &  &  &  \\
+        11 &  &  & 
     \end{tabular}
     \caption{Performance of distinguishing notes in an interval with root note $\text{A}_2$.}
     \label{tab:polperf}
