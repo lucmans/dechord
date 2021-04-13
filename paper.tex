@@ -263,21 +263,13 @@ In the tables, we can see that the algorithm performs well on higher pitched int
 
 \subsection{Latency}  \label{sub:algspeed}
 The processing time of our system is very important, as it will directly impact the latency. We will only measure the time between receiving a frame from the audio driver until the answer is computed, as the time spent waiting on enough samples is fully determined by the number of samples in a frame and the sampling rate. The total processing time and the processing time of the individual steps and the total system can be seen in Figure~\ref{fig:snel}.
-\begin{figure}[H]%\vspace{-2mm}
+\begin{figure*}[t]%\vspace{-2mm}
     \centering
-    \begin{subfigure}{.49\textwidth}
-        \centering
-        % \includegraphics[width=\linewidth]{figures/circarea_low.png}
-        \captionof*{figure}{Scales}
-    \end{subfigure}
-    \begin{subfigure}{.49\textwidth}
-        \centering
-        % \includegraphics[width=\linewidth]{figures/circarea_high.png}
-        \captionof*{figure}{Intervals}
-    \end{subfigure}
+    \includegraphics[width=0.85\linewidth]{1.png}\vspace{+6mm}
+    \includegraphics[width=0.85\linewidth]{2.png}
     \caption{Processing time of the different algorithms}
     \label{fig:snel}
-\end{figure}%\vspace{-4mm}
+\end{figure*}%\vspace{-4mm}
 TODO: The results are what they are...
 
 
