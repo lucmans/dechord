@@ -21,7 +21,7 @@
 
 % \setlength{\columnsep}{8mm}
 
-\title{\textbf{Multi-pitch estimation based on mathematical models}\\A pitch estimation framework and harmonic overtone sieve algorithm}
+\title{\textbf{Real-time guitar transcription using\\Fourier transform based methods}\\A pitch estimation framework and overtone sieve algorithm}
 \author{Luc de Jonckheere}
 % \date{}
 
@@ -187,28 +187,71 @@ To test the monophonic performance of our system, we first measure the performan
 We can see that the transient errors are very consistent. In our data, we noticed that the first played note almost always had a transient error. This could be because we start playing from a silent signal instead of changing from a previous note. The transient errors show up more often between lower frequency notes. The octave errors become more of a problem the higher we play. In the scales starting from $\text{A}_2$ and lower, we only see octave error at note changes. However, from $\text{B}_2$ and higher, we start to see consecutive octave errors. Here, between 50\% and 100\% of the frames of a note. During these errors, there are often noisy peaks in much lower frequency bands which throw the estimation process off. Other than these problems, the system worked perfectly.
 
 \subsection{Polyphonic performance: intervals}
-To test the polyphonic performance of our system, we let it determine the played notes in an interval. We play every interval within an octave to test if there are any problems with separating the notes in specific intervals. For instance, some interference may cause oscillating peaks in the frequency domain. Again, we try all the intervals at different root notes, as especially for intervals the pitch of the root note may make a big difference. As we mentioned before, when two peaks are too close together, we cannot distinguish them. Often, the second note is distinguished an octave higher. In Table~\ref{tab:polperf} is a summary of the results. Here, we list the number of semitones $n$ between the two notes in an interval, if both notes were correctly found. If not, we denote if the second note was detected an octave higher. This often happens, because we cannot distinguish two notes in small intervals at low pitches. The last column shows if there were other notes reported which were not transients.
-\begin{table}[H]%\vspace{-3mm}
+To test the polyphonic performance of our system, we let it determine the played notes in an interval. We play every interval within an octave to test if there are any problems with separating the notes in specific intervals. For instance, some interference may cause oscillating peaks in the frequency domain. Again, we try all the intervals at different root notes, as the pitch of the root note may make a big difference in performance. As we mentioned before, when two peaks are too close together, we cannot distinguish them. Often, the second note is distinguished an octave higher. We set the overtone error threshold to 10 cents. This is a relatively small value, but this allows us to see small problems in our algorithms better. Furthermore, as described in~\ref{sec:future}, we should not use a constant value, but use a different value for every $n$-th overtone. In Tables~\ref{tab:polperf1}--\ref{tab:polperf3} is a summary of the results. Here, we list the number of semitones $n$ between the two notes in an interval, if both notes were correctly found. If not, we denote if the second note was detected an octave higher. This often happens, because we cannot distinguish two notes in small intervals at low pitches. The last column shows if there were other notes reported which were not transients.
+\begin{table}[H]\vspace{-4mm}
     \centering
-    \begin{tabular}{r|rrr}
+    \begin{tabular}{r|lll}
         $n$ & both & octave & other \\
         \hline
-        1  &  &  &  \\
-        2  &  &  &  \\
-        3  &  &  &  \\
-        4  &  &  &  \\
-        5  &  &  &  \\
-        6  &  &  &  \\
-        7  &  &  &  \\
-        8  &  &  &  \\
-        9  &  &  &  \\
-        10 &  &  &  \\
-        11 &  &  & 
+        1  & false & true & 1-3 slightly inharmonic overtones \\
+        2  & false & false & - \\
+        3  & false & true & $\text{C}_4$ and $\text{G}_4$ (+ random at start) \\
+        4  & true & - & Sometimes octave instead\\ &&& and 1-2 inharmonics at start \\
+        5  & true & - & 1 slightly inharmonic overtone \\
+        6  & true & - & 1-3 slightly inharmonic overtones \\
+        7  & true & - & no \\
+        8  & true & - & no \\
+        9  & true & - & occasional inharmonic overtone \\
+        10 & true & - & 1-2 slightly inharmonic overtones \\
+        11 & true & - & 1-2 slightly inharmonic overtones
     \end{tabular}
     \caption{Performance of distinguishing notes in an interval with root note $\text{A}_2$.}
-    \label{tab:polperf}
+    \label{tab:polperf1}
 \end{table}\vspace{-3mm}
-In the tables, we can see that... (not enough overtones for low pitched intervals...)
+\begin{table}[H]%\vspace{-3mm}
+    \centering
+    \begin{tabular}{r|lll}
+        $n$ & both & octave & other \\
+        \hline
+        1  & false & true & about 4 slightly inharmonic overtones \\
+        2  & false & true & about 4 slightly inharmonic overtones \\
+        3  & true & - & $\text{C\#}_6$ or $\text{E}_6$ in first few frames \\
+        4  & true & - & no \\
+        5  & true & - & no \\
+        6  & true & - & no \\
+        7  & true & - & no \\
+        8  & true & - & random note 3 times \\
+        9  & true & - & no \\
+        10 & true & - & no \\
+        11 & true & - & no
+    \end{tabular}
+    \caption{Performance of distinguishing notes in an interval with root note $\text{A}_3$.}
+    \label{tab:polperf2}
+\end{table}\vspace{-3mm}
+\begin{table}[H]%\vspace{-3mm}
+    \centering
+    \begin{tabular}{r|lll}
+        $n$ & both & octave & other \\
+        \hline
+        1  & false & true & occasional $\text{E}_6$ \\
+        2  & true & - & no \\
+        3  & true & - & no \\
+        4  & true & - & no \\
+        5  & true & - & no \\
+        6  & true & - & no \\
+        7  & true & - & no \\
+        8  & true & - & no \\
+        9  & true & - & no \\
+        10 & true & - & no \\
+        11 & true & - & no
+    \end{tabular}
+    \caption{Performance of distinguishing notes in an interval with root note $\text{A}_4$.}
+    \label{tab:polperf3}
+\end{table}\vspace{-3mm}
+In the tables, we can see that the algorithm performs well on higher pitched intervals. On medium pitched intervals, the small intervals become more of a problem, but most intervals are detected correctly. Transients are however visible for longer in the small intervals. Big problems arise when we look at the lower pitched intervals. There is much noise in the results and many slightly inharmonic overtones are reported. These could be filtered out by increasing the overtone error threshold, but that does not solve the overtones being inharmonic. The inharmonic overtones are less of a problem for larger intervals.
+
+% We also look at the percentage of overtones that is filtered throughout a recording of an interval.
+As the harmonic overtone sieve algorithm is only a proof of concept, absolute performance measurements will yield bad results. By measuring the performance relative to having no filtering, we can show the effectiveness of our algorithm. This is done by measuring the percentage of overtones that is filtered throughout a recording of an interval. TODO: See Figure~\ref{fig:relative} for some examples of 
 
 \subsection{Latency}  \label{sub:algspeed}
 The processing time of our system is very important, as it will directly impact the latency. We will only measure the time between receiving a frame from the audio driver until the answer is computed, as the time spent waiting on enough samples is fully determined by the number of samples in a frame and the sampling rate. The total processing time and the processing time of the individual steps and the total system can be seen in Figure~\ref{fig:snel}.
