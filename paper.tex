@@ -176,15 +176,15 @@ To test the monophonic performance of our system, we first measure the performan
         $\text{F}_2$ & 92.3\% & 96.2\% & 96.2\% & 100\% \\
         $\text{G}_2$ & 92.0\% & 95.0\% & 97.0\% & 100\% \\
         $\text{A}_2$ & 89.1\% & 96.0\% & 93.0\% & 100\% \\
-        $\text{B}_2$ & 90.6\% & 96.2\% & 94.3\% & 100\% \\
-        $\text{C}_3$ & 82.7\% & 95.9\% & 86.7\% & 100\% \\
-        $\text{D}_3$ & 76.6\% & 95.7\% & 80.9\% & 100\% \\
-        $\text{E}_3$ & 91.6\% & 97.9\% & 93.7\% & 100\%
+        $\text{B}_2$ & 92.8\% & 96.9\% & 95.9\% & 100\% \\
+        $\text{C}_3$ & 92.8\% & 92.8\% & 100\%  & 100\% \\
+        $\text{D}_3$ & 96.0\% & 98.0\% & 98.0\% & 100\% \\
+        $\text{E}_3$ & 96.7\% & 96.7\% & 100\%  & 100\%
     \end{tabular}
     \caption{Accuracy of monophonic $f_0$ estimation on C major scale at two notes per second for different starting positions.}
     \label{tab:monperf}
 \end{table}\vspace{-3mm}
-We can see that the transient errors are very consistent. In our data, we noticed that the first played note almost always had a transient error. This could be because we start playing from a silent signal instead of changing from a previous note. The transient errors show up more often between lower frequency notes. The octave errors become more of a problem the higher we play. In the scales starting from $\text{A}_2$ and lower, we only see octave error at note changes. However, from $\text{B}_2$ and higher, we start to see consecutive octave errors. Here, between 50\% and 100\% of the frames of a note. During these errors, there are often noisy peaks in much lower frequency bands which throw the estimation process off. Other than these problems, the system worked perfectly.
+We can see that the transient errors 96\% of the time. There are two outliers at $\text{C}_3$ and $\text{D}_3$, which are the cause of inconsistent quality the played scales. This shows us that the guitarist has to play carefully for the best results. Furthermore, we noticed that the first played note almost always had a transient error. This could be because we start playing from a silent signal instead of changing from a previous note. Also, the transient errors show up more often between lower frequency notes. Almost all octave errors are at note changes, so better transient filtering will also solve these cases. Other than these errors, the system seems to work perfectly.
 
 \subsection{Polyphonic performance: intervals}
 To test the polyphonic performance of our system, we let it determine the played notes in an interval. We play every interval within an octave to test if there are any problems with separating the notes in specific intervals. For instance, some interference may cause oscillating peaks in the frequency domain. Again, we try all the intervals at different root notes, as the pitch of the root note may make a big difference in performance. As we mentioned before, when two peaks are too close together, we cannot distinguish them. Often, the second note is distinguished an octave higher. We set the overtone error threshold to 10 cents. This is a relatively small value, but this allows us to see small problems in our algorithms better. Furthermore, as described in~\ref{sec:future}, we should not use a constant value, but use a different value for every $n$-th overtone. In Tables~\ref{tab:polperf1}--\ref{tab:polperf3} is a summary of the results. Here, we list the number of semitones $n$ between the two notes in an interval, if both notes were correctly found. If not, we denote if the second note was detected an octave higher. This often happens, because we cannot distinguish two notes in small intervals at low pitches. The last column shows if there were other notes reported which were not transients.
@@ -219,7 +219,7 @@ To test the polyphonic performance of our system, we let it determine the played
         4  & true & - & no \\
         5  & true & - & no \\
         6  & true & - & no \\
-        7  & true & - & no \\
+        7  & true & - & $\text{E}_4$ often filtered \\
         8  & true & - & random note 3 times \\
         9  & true & - & no \\
         10 & true & - & no \\
@@ -249,9 +249,9 @@ To test the polyphonic performance of our system, we let it determine the played
     \label{tab:polperf3}
 \end{table}\vspace{-3mm}
 In the tables, we can see that the algorithm performs well on higher pitched intervals. On medium pitched intervals, the small intervals become more of a problem, but most intervals are detected correctly. Transients are however visible for longer in the small intervals. Big problems arise when we look at the lower pitched intervals. There is much noise in the results and many slightly inharmonic overtones are reported. These could be filtered out by increasing the overtone error threshold, but that does not solve the overtones being inharmonic. The inharmonic overtones are less of a problem for larger intervals.
-
+%
 % We also look at the percentage of overtones that is filtered throughout a recording of an interval.
-As the harmonic overtone sieve algorithm is only a proof of concept, absolute performance measurements will yield bad results. By measuring the performance relative to having no filtering, we can show the effectiveness of our algorithm. This is done by measuring the percentage of overtones that is filtered throughout a recording of an interval. TODO: See Figure~\ref{fig:relative} for some examples of 
+% As the harmonic overtone sieve algorithm is only a proof of concept, absolute performance measurements will yield bad results. By measuring the performance relative to having no filtering, we can show the effectiveness of our algorithm. This is done by measuring the percentage of overtones that is filtered throughout a recording of an interval. TODO: See Figure~\ref{fig:relative} for some examples of 
 
 \subsection{Latency}  \label{sub:algspeed}
 The processing time of our system is very important, as it will directly impact the latency. We will only measure the time between receiving a frame from the audio driver until the answer is computed, as the time spent waiting on enough samples is fully determined by the number of samples in a frame and the sampling rate. The total processing time and the processing time of the individual steps and the total system can be seen in Figure~\ref{fig:snel}.
