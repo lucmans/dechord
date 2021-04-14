@@ -262,15 +262,15 @@ In the tables, we can see that the algorithm performs well on higher pitched int
 % Lastly, we will measure the performance on the four main triads: the major triad, minor triad, augmented triad and diminished triad. TODO: Experiment
 
 \subsection{Latency}  \label{sub:algspeed}
-The processing time of our system is very important, as it will directly impact the latency. We will only measure the time between receiving a frame from the audio driver until the answer is computed, as the time spent waiting on enough samples is fully determined by the number of samples in a frame and the sampling rate. The total processing time and the processing time of the individual steps and the total system can be seen in Figure~\ref{fig:snel}.
-\begin{figure*}[t]%\vspace{-2mm}
+The processing time of our system is very important, as it will directly impact the latency. We will only measure the time between receiving a frame from the audio driver until the answer is computed, as the time spent waiting on enough samples is fully determined by the number of samples in a frame and the sampling rate. The total processing time and the processing time of the individual steps and the total system can be seen in Figure~\ref{fig:snel}. Here, we only measure the latency on frames which contain peaks.
+\begin{figure}[t]%\vspace{-2mm}
     \centering
-    \includegraphics[width=0.85\linewidth]{1.png}\vspace{+6mm}
-    \includegraphics[width=0.85\linewidth]{2.png}
+    \includegraphics[width=\linewidth]{1.png}\vspace{+6mm} %0.85
+    \includegraphics[width=\linewidth]{2.png} %0.85
     \caption{Processing time of the different algorithms}
     \label{fig:snel}
-\end{figure*}%\vspace{-4mm}
-TODO: The results are what they are...
+\end{figure}%\vspace{-4mm}
+The total latency is never higher than 360 microseconds. This is well within out real-time constraint if we disregard the latency to fill a frame. Surprisingly, the peak picking algorithm is more compute intensive than the transform. Most of the time, the latency is on the lower end of the distribution. The outliers are mostly a result of transients. During transients, there are a lot more peaks to process, which slows down the different algorithms. This is especially the case for polyphonic transcription, as we have to take all the peaks into account. In the polyphonic dataset, transients contain more peaks as multiple strings are strummed. This results in a second lobe in the mid segment of the latency distribution.
 
 
 \section{Conclusions}
