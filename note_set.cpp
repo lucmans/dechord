@@ -29,7 +29,7 @@ const std::string stringify_sub(int n) {
 }
 
 
-double interpolate_max(const int max_idx, const double norms[(WINDOW_SAMPLES / 2) + 1]) {
+double interpolate_max(const int max_idx, const double norms[(FRAME_SIZE / 2) + 1]) {
     const double a = log2(norms[max_idx - 1]),
                  b = log2(norms[max_idx]),
                  c = log2(norms[max_idx + 1]);
@@ -38,7 +38,7 @@ double interpolate_max(const int max_idx, const double norms[(WINDOW_SAMPLES / 2
     return max_idx + p;
 }
 
-double interpolate_max(const int max_idx, const double norms[(WINDOW_SAMPLES / 2) + 1], double &amp) {
+double interpolate_max(const int max_idx, const double norms[(FRAME_SIZE / 2) + 1], double &amp) {
     const double a = log2(norms[max_idx - 1]),
                  b = log2(norms[max_idx]),
                  c = log2(norms[max_idx + 1]);
@@ -74,16 +74,16 @@ std::ostream& operator<<(std::ostream &s, const Note &note) {
 }
 
 
-NoteSet::NoteSet(const double norms[(WINDOW_SAMPLES / 2) + 1], const std::vector<int> &peaks) {
+NoteSet::NoteSet(const double norms[(FRAME_SIZE / 2) + 1], const std::vector<int> &peaks) {
     for(int p : peaks) {
         // TODO: Check if the interpolation will be in-bounds
-        // if(p == 0 || p == WINDOW_SAMPLES / 2)
+        // if(p == 0 || p == FRAME_SIZE / 2)
         //     continue;
-        // else if(p > WINDOW_SAMPLES / 2)
+        // else if(p > FRAME_SIZE / 2)
         //     exit(-1);  // TODO: Error here
 
         double amp;
-        const double freq = ((double)SAMPLE_RATE / WINDOW_SAMPLES) * interpolate_max(p, norms, amp);
+        const double freq = ((double)SAMPLE_RATE / FRAME_SIZE) * interpolate_max(p, norms, amp);
         notes.push_back(Note(freq, amp));
     }
 }
@@ -135,7 +135,7 @@ const Note* NoteSet::get_likeliest_note() const {
     const int n_notes = notes.size();
     if(n_notes == 0)
         return nullptr;
-    else if(n_notes == 1)
+    else if(n_notes == 1 && notes[0].amp > 0)
         return &notes[0];
 
     std::vector<int> n_harmonics(n_notes, 0);
@@ -154,6 +154,10 @@ const Note* NoteSet::get_likeliest_note() const {
         if(n_harmonics[i] > n_harmonics[max_idx])
             max_idx = i;
     }
+
+    // Filter noise
+    if(notes[max_idx].amp < 0)
+        return nullptr;
 
     return &notes[max_idx];
 }
@@ -261,4 +265,9 @@ void in_range(std::vector<const Note*> &note_vec) {
         if(note_vec[i]->freq < MIN_FREQ || note_vec[i]->freq > MAX_FREQ)
             note_vec.erase(note_vec.begin() + i);
     }
+}
+
+void in_range(const Note* &note) {
+    if(note->freq < MIN_FREQ || note->freq > MAX_FREQ)
+        note = nullptr;
 }

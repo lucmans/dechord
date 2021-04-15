@@ -1,6 +1,6 @@
 
 #include "gensound.h"
-#include "fourier.h"
+#include "transcribe.h"
 #include "config.h"
 #include "graphics.h"
 #include "note_set.h"
@@ -96,10 +96,19 @@ void print_audio_settings(SDL_AudioSpec &specs, bool input) {
     std::cout << "Audio " << (input ? "input" : "output") << " config:" << std::endl
               << "Sample rate: " << SAMPLE_RATE << " " << specs.freq << std::endl
               << "Format: " << FORMAT << " " << specs.format << std::endl
-              << "Channels: " << N_CHANNELS << " " << specs.channels << std::endl
+              << "Channels: " << N_CHANNELS << " " << (int)specs.channels << std::endl
               << "Samples per buffer: " << SAMPLES_PER_BUFFER << " " << specs.samples << std::endl
               << "Buffer size:  -  " << specs.size << " bytes" << std::endl
-              << "Silence value:  -  " << specs.silence << std::endl
+              << "Silence value:  -  " << (int)specs.silence << std::endl
+              << std::endl;
+}
+
+void print_config() {
+    std::cout << "A4: " << A4 << " Hz" << std::endl
+              << "Power threshold: " << POWER_THRESHOLD << std::endl
+              << "Overtone error: " << OVERTONE_ERROR << " cent" << std::endl
+              << "Frequency range fundamentals: " << MIN_FREQ << "-" << MAX_FREQ << " Hz" << std::endl
+              << "Gaussian envelope kernel width: " << KERNEL_WIDTH << " bins with " << SIGMA << " sigma" << std::endl
               << std::endl;
 }
 
@@ -111,6 +120,9 @@ void parse_args(int argc, char *argv[]) {
             std::cout << "Finished reading samples from " << argv[i + 1] << std::endl;
 
             i++;
+        }
+        else if(strcmp(argv[i], "-h")) {
+            settings.headless = true;
         }
         else if(strcmp(argv[i], "-o") == 0 && argc > i + 1) {
             std::cout << "File output not implemented" << std::endl;
@@ -143,6 +155,7 @@ void parse_args(int argc, char *argv[]) {
             std::cout << "Flags:\n"
                       // << "  -c    - Compute "
                       << "  -f <file>     - Get samples from file (.wav) instead of input device\n"
+                      << "  -hl           - Run headless (no GUI)\n"
                       << "  -o <file>     - File to which the output gets written\n"
                       << "  -p <note> <n> - Print n overtones of note\n"
                       << "  -s            - Generate sine instead of listening to input device\n"
@@ -159,12 +172,21 @@ int main(int argc, char *argv[]) {
     parse_args(argc, argv);
 
     // Init SDL
-    if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
+    if(SDL_Init(SDL_INIT_AUDIO) < 0) {
         printf("SDL could not initialize!\nSDL Error: %s\n", SDL_GetError());
         exit(EXIT_FAILURE);
     }
     std::cout << "Using audio driver: " << SDL_GetCurrentAudioDriver() << std::endl << std::endl;
-    Graphics graphics;
+    
+    Graphics *graphics = nullptr;
+    if(!settings.headless) {
+        if(SDL_InitSubSystem(SDL_INIT_VIDEO) < 0) {
+            printf("SDL could not initialize video!\nSDL Error: %s\n", SDL_GetError());
+            exit(EXIT_FAILURE);
+        }
+
+        graphics = new Graphics();
+    }
 
     // Print available audio devices
     int count = SDL_GetNumAudioDevices(0);
@@ -201,14 +223,19 @@ int main(int argc, char *argv[]) {
     }
     print_audio_settings(have, true);
 
+    print_config();
+
     if(settings.test_tone)
         play_test_tone(out_dev);
 
     std::cout << "Cores: " << omp_get_num_procs() << std::endl
-              << "Samples per window: " << WINDOW_SAMPLES << std::endl
-              << "Window length: " << (double)WINDOW_SAMPLES / SAMPLE_RATE << 's' << std::endl;
+              << "Samples per window: " << FRAME_SIZE << std::endl
+              << "Window length: " << (double)FRAME_SIZE / SAMPLE_RATE << 's' << std::endl;
 
-    fourier(in_dev, graphics);
+    transcribe(in_dev, graphics, out_dev);
+
+    if(graphics != nullptr)
+        delete graphics;
 
     SDL_CloseAudioDevice(in_dev);
     SDL_CloseAudioDevice(out_dev);

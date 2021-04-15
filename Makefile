@@ -8,18 +8,18 @@
 
 # General compiler flags
 CXX = g++
-CXXFLAGS = -std=c++11 -g -fsanitize=address
+CXXFLAGS = -std=c++11 #-g -fsanitize=address
 WARNINGS = -Wall -Wextra -Wfloat-equal #-Wconversion -Warith-conversion
 # FLAGS = -DCOLORED
-OPTIMIZATIONS = -O3 -march=native -mtune=native # -mfma -mavx2 -ftree-vectorize -ffast-math
+OPTIMIZATIONS = -O3 -march=native -mtune=native -mfma -mavx2 -ftree-vectorize -ffast-math
 LIBS = -lSDL2 -lfftw3f -lm -fopenmp
 CORES = 20
 
 BIN = dechord
-OBJ = main.o gensound.o fourier.o config.o graphics.o find_peaks.o note_set.o music_file.o
+OBJ = main.o gensound.o transcribe.o config.o graphics.o find_peaks.o note_set.o music_file.o
 
 
-.PHONY: all clean valgrind lines todo upload zip
+.PHONY: all clean valgrind lines todo
 
 
 all:
@@ -30,13 +30,13 @@ $(BIN): $(OBJ)
 	$(CXX) $(CXXFLAGS) $(WARNINGS) $(OPTIMIZATIONS) -o $@ $^ $(LIBS)
 
 
-main.o: main.cpp gensound.h fourier.h config.h graphics.h music_file.h
+main.o: main.cpp gensound.h transcribe.h config.h graphics.h music_file.h
 	$(CXX) $(CXXFLAGS) $(WARNINGS) $(FLAGS) $(OPTIMIZATIONS) -c $<
 
 gensound.o: gensound.cpp gensound.h config.h
 	$(CXX) $(CXXFLAGS) $(WARNINGS) $(FLAGS) $(OPTIMIZATIONS) -c $<
 
-fourier.o: fourier.cpp fourier.h config.h graphics.h find_peaks.h note_set.h music_file.h
+transcribe.o: transcribe.cpp transcribe.h config.h graphics.h find_peaks.h note_set.h music_file.h
 	$(CXX) $(CXXFLAGS) $(WARNINGS) $(FLAGS) $(OPTIMIZATIONS) -c $<
 
 config.o: config.cpp config.h
@@ -81,19 +81,8 @@ todo:
 	grep -n TODO *.cpp *.h || echo -e "Nothing left to do!\n"
 
 
-fourier.tar.gz zip:
-	make clean
-	tar -czvf ./fourier.tar.gz --exclude "./fourier.tar.gz" *
-
-upload: fourier.tar.gz
-	scp fourier.tar.gz s1685538@sshgw.leidenuniv.nl:homedir/fourier.tar.gz
-	@echo Manually enter the scp commando in the remote server
-	ssh s1685538@sshgw.leidenuniv.nl
-
-
 clean:
 	rm -f *.o
 	rm -f $(BIN)
 	rm -f *.s
 	rm -f vgcore*
-	rm -f ./fourier.tar.gz

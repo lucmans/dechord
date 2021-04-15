@@ -13,8 +13,8 @@
 
 
 // Given a peak at max_idx (can't be first or last of norms), interpolate actual peak location
-double interpolate_max(const int max_idx, const double norms[(WINDOW_SAMPLES / 2) + 1]);
-double interpolate_max(const int max_idx, const double norms[(WINDOW_SAMPLES / 2) + 1], double &amp);
+double interpolate_max(const int max_idx, const double norms[(FRAME_SIZE / 2) + 1]);
+double interpolate_max(const int max_idx, const double norms[(FRAME_SIZE / 2) + 1], double &amp);
 
 
 // 'd' denotes #; the opposite of b (from diesis)
@@ -42,7 +42,7 @@ std::ostream& operator<<(std::ostream &s, const Note &note);
 
 class NoteSet {
     public:
-        NoteSet(const double norms[(WINDOW_SAMPLES / 2) + 1], const std::vector<int> &peaks);
+        NoteSet(const double norms[(FRAME_SIZE / 2) + 1], const std::vector<int> &peaks);
         ~NoteSet();
 
         const std::vector<Note>* get_notes() const;
@@ -62,5 +62,6 @@ std::ostream& operator<<(std::ostream &s, const NoteSet &noteset);
 void print_notevec(const std::vector<const Note*> &note_vec);
 
 void in_range(std::vector<const Note*> &note_vec);
+void in_range(const Note* &note);
 
 #endif  // NOTE_H

@@ -25,11 +25,9 @@ Graphics::Graphics() : res_x(DEFAULT_RES[0]), res_y(DEFAULT_RES[1]) {
     SDL_RenderCopy(renderer, buffer, NULL, NULL);
     SDL_RenderPresent(renderer);
 
-    line = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, (WINDOW_SAMPLES / 2) + 1, 1);
-    if(line == NULL) {
-        printf("SDL could not create texture for line! Try compiling with samples per window (config.h)\nSDL Error: %s\n", SDL_GetError());
-        exit(-1);
-    }
+    line = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, (FRAME_SIZE / 2) + 1, 1);
+    if(line == NULL)
+        printf("Warning: SDL could not create texture for line! Try compiling with a lower FRAME_SIZE (config.h)\nSDL Error: %s\n", SDL_GetError());
 }
 
 Graphics::~Graphics() {
@@ -52,8 +50,11 @@ uint32_t calc_color(const double data, const double max_value) {
     return rgba;
 }
 
-void Graphics::add_line(const double data[(WINDOW_SAMPLES / 2) + 1], const double max_value,
-                        const std::vector<int> &peaks, const int n_data_points = (WINDOW_SAMPLES / 2) + 1) {
+void Graphics::add_line(const double data[(FRAME_SIZE / 2) + 1], const double max_value,
+                        const std::vector<int> &peaks, const int n_data_points = (FRAME_SIZE / 2) + 1) {
+    if(line == NULL)
+        return;
+
     uint32_t *pixels;
     int pitch;
     SDL_LockTexture(line, NULL, (void **)&pixels, &pitch);
@@ -65,7 +66,8 @@ void Graphics::add_line(const double data[(WINDOW_SAMPLES / 2) + 1], const doubl
     for(unsigned int i = 0; i < peaks.size(); i++) {
         if(peaks[i] >= n_data_points)
             continue;
-        pixels[peaks[i]] = 0xff00ffff;
+        // pixels[peaks[i]] = 0xff00ffff;
+        pixels[peaks[i]] |= 0x7f7f7fff;
     }
     SDL_UnlockTexture(line);
 
@@ -80,15 +82,21 @@ void Graphics::add_line(const double data[(WINDOW_SAMPLES / 2) + 1], const doubl
     const SDL_Rect line_dst = {0, 0, res_x, 1};
     SDL_RenderCopy(renderer, line, &line_src, &line_dst);
     SDL_SetRenderTarget(renderer, NULL);
+}
+
+void Graphics::graph_waterfall() {
+    if(line == NULL)
+        return;
 
     // Render
     SDL_RenderCopy(renderer, buffer, NULL, NULL);
     SDL_RenderPresent(renderer);
 }
 
-void Graphics::graph_spectrogram(const double data[(WINDOW_SAMPLES / 2) + 1], const double max_value,
-                                 const std::vector<int> &peaks, const double envelope[(WINDOW_SAMPLES / 2) + 1],
-                                 const int n_data_points = (WINDOW_SAMPLES / 2) + 1) {
+
+void Graphics::graph_spectrogram(const double data[(FRAME_SIZE / 2) + 1], const double max_value,
+                                 const std::vector<int> &peaks, const double envelope[(FRAME_SIZE / 2) + 1],
+                                 const int n_data_points = (FRAME_SIZE / 2) + 1) {
     // TODO: Remove this memory leak
     static SDL_Texture *graf = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, res_x, res_y);
     SDL_SetRenderTarget(renderer, graf);
@@ -107,7 +115,7 @@ void Graphics::graph_spectrogram(const double data[(WINDOW_SAMPLES / 2) + 1], co
     SDL_SetRenderDrawColor(renderer, 0xff, 0x00, 0x00, 0xff);
     int prev_y = res_y - ((log10(envelope[0] + 1) / log10(max_value + 1)) * res_y);
     // int prev_y = res_y - ((envelope[0] / max_value) * res_y);
-    // for(int i = 1; i < (WINDOW_SAMPLES / 2) + 1; i++) {
+    // for(int i = 1; i < (FRAME_SIZE / 2) + 1; i++) {
     for(int i = 1; i < n_data_points; i++) {
         int y = res_y - ((log10(envelope[i] + 1) / log10(max_value + 1)) * res_y);
         // int y = res_y - ((envelope[i] / max_value) * res_y);
@@ -119,13 +127,15 @@ void Graphics::graph_spectrogram(const double data[(WINDOW_SAMPLES / 2) + 1], co
     SDL_SetRenderDrawColor(renderer, 0x00, 0xff, 0x00, 0xff);
     prev_y = res_y - ((log10(data[0] + 1) / log10(max_value + 1)) * res_y);
     // prev_y = res_y - ((data[0] / max_value) * res_y);
-    // for(int i = 1; i < (WINDOW_SAMPLES / 2) + 1; i++) {
+    // for(int i = 1; i < (FRAME_SIZE / 2) + 1; i++) {
     for(int i = 1; i < n_data_points; i++) {
         int y = res_y - ((log10(data[i] + 1) / log10(max_value + 1)) * res_y);
         // int y = res_y - ((data[i] / max_value) * res_y);
         SDL_RenderDrawLine(renderer, i - 1, prev_y, i, y);
         prev_y = y;
     }
+
+    // SDL_RenderDrawLine(renderer, 0, res_y - ((3.0 / max_value) * res_y), res_x, res_y - ((3.0 / max_value) * res_y));
 
     SDL_SetRenderTarget(renderer, NULL);
     SDL_Rect src_graf = {0, 0, n_data_points, res_y};

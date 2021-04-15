@@ -17,13 +17,13 @@ int calc_gaussian(double gaussian[KERNEL_WIDTH]) {
     return 1;  // For static assignment (calculating only once)
 }
 
-void calc_envelope(const double norms[(WINDOW_SAMPLES / 2) + 1], double envelope[(WINDOW_SAMPLES / 2) + 1]) {
+void calc_envelope(const double norms[(FRAME_SIZE / 2) + 1], double envelope[(FRAME_SIZE / 2) + 1]) {
     // Static to only Gaussian calculate once
     static int init = calc_gaussian(gaussian);
 
-    for(int i = 0; i < (WINDOW_SAMPLES / 2) + 1; i++) {
+    for(int i = 0; i < (FRAME_SIZE / 2) + 1; i++) {
         double sum = 0, weights = 0;
-        for(int j = std::max(-MID, -i); j <= std::min(MID, (WINDOW_SAMPLES / 2) - i); j++) {
+        for(int j = std::max(-MID, -i); j <= std::min(MID, (FRAME_SIZE / 2) - i); j++) {
             sum += norms[i + j] * gaussian[j + MID];
             weights += gaussian[j + MID];
         }
@@ -36,8 +36,8 @@ void calc_envelope(const double norms[(WINDOW_SAMPLES / 2) + 1], double envelope
 }
 
 
-void all_max(const double norms[(WINDOW_SAMPLES / 2) + 1], std::vector<int> &peaks) {
-    for(int i = 1; i < (WINDOW_SAMPLES / 2); i++) {
+void all_max(const double norms[(FRAME_SIZE / 2) + 1], std::vector<int> &peaks) {
+    for(int i = 1; i < (FRAME_SIZE / 2); i++) {
         if(norms[i - 1] < norms[i] && norms[i] > norms[i + 1])
             peaks.push_back(i);
     }
@@ -49,24 +49,20 @@ void all_max(const double norms[(WINDOW_SAMPLES / 2) + 1], std::vector<int> &pea
     }
 }
 
-void envelope_peaks(const double norms[(WINDOW_SAMPLES / 2) + 1], const double envelope[(WINDOW_SAMPLES / 2) + 1], std::vector<int> &peaks) {
-    for(int i = 1; i < (WINDOW_SAMPLES / 2); i++) {
-        if(norms[i - 1] < norms[i] && norms[i] > norms[i + 1] && norms[i] > envelope[i])
+void envelope_peaks(const double norms[(FRAME_SIZE / 2) + 1], const double envelope[(FRAME_SIZE / 2) + 1], std::vector<int> &peaks) {
+    for(int i = 5; i < (FRAME_SIZE / 2); i++) {
+        if(norms[i - 1] < norms[i] && norms[i] > norms[i + 1]  // A local maximum
+           && norms[i] > envelope[i]  // Higher than envelope
+           && envelope[i] > 0.1)  // Filter quiet peaks
             peaks.push_back(i);
-    }
-
-    // Filter quiet peaks
-    for(size_t i = peaks.size(); i > 0; i--) {
-        if(envelope[peaks[i - 1]] < 0.1)
-            peaks.erase(peaks.begin() + (i - 1));
     }
 }
 
-void envelope_highest_peak(const double norms[(WINDOW_SAMPLES / 2) + 1], const double envelope[(WINDOW_SAMPLES / 2) + 1], std::vector<int> &peaks) {
+void envelope_highest_peak(const double norms[(FRAME_SIZE / 2) + 1], const double envelope[(FRAME_SIZE / 2) + 1], std::vector<int> &peaks) {
     bool envelope_entered = false;
     bool envelope_left = true;
 
-    for(int i = 0; i < (WINDOW_SAMPLES / 2) + 1; i++) {
+    for(int i = 0; i < (FRAME_SIZE / 2) + 1; i++) {
         if(norms[i] > envelope[i] && envelope_left) {
             envelope_entered = true;
             envelope_left = false;
@@ -83,7 +79,7 @@ void envelope_highest_peak(const double norms[(WINDOW_SAMPLES / 2) + 1], const d
     }
 }
 
-void find_peaks(const double norms[(WINDOW_SAMPLES / 2) + 1], const double envelope[(WINDOW_SAMPLES / 2) + 1], std::vector<int> &peaks) {
+void find_peaks(const double norms[(FRAME_SIZE / 2) + 1], const double envelope[(FRAME_SIZE / 2) + 1], std::vector<int> &peaks) {
     // all_max(norms, peaks);
     envelope_peaks(norms, envelope, peaks);
     // envelope_highest_peak(norms, envelope, peaks);

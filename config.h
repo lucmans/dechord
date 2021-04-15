@@ -8,7 +8,7 @@
 
 // Audio related configs
 const int SAMPLE_RATE = 96000 * 2;
-const int WINDOW_SAMPLES = 1024 * 16 /** 2*/;
+const int FRAME_SIZE = 1024 * 16 /** 2*/;  // Number of samples in Fourier frame
 
 // Central A in Hz
 const double A4 = 440.0;
@@ -44,6 +44,8 @@ struct Settings {
     bool generate_sine = false;
 
     bool play_file = false;
+
+    bool headless = false;
 };
 extern Settings settings;
 
