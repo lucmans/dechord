@@ -1,0 +1,21 @@
+% \IncMargin{1em}
+\begin{algorithm}
+    \SetKwData{in}{frame}
+    \SetKwFunction{kw}{kernel\_width}\SetKwFunction{gaussian}{gaussian}\SetKwFunction{mid}{mid}%\SetKwFunction{mid}{mid}
+    \SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
+    \SetKwComment{Comment}{ //}{}
+
+    \Input{Compile time configuration}
+    \Output{Gaussian weights}
+    \BlankLine
+
+    \Comment{\kw has to be odd}
+    \mid = \kw \ / 2\;
+    \For{$i\leftarrow 0$ \KwTo \kw} {
+        gaussian[$i$] = $e^{-\pi * (\frac{i - \mid}{\sigma * \mid})^2}$\;
+    }
+
+    \BlankLine
+    \caption{Calculate the Gaussian weights based on compile-time configuration.}
+    \label{alg:gauss}
+\end{algorithm}%\DecMargin{1em}

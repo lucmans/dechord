@@ -1,0 +1,29 @@
+% \IncMargin{1em}
+\begin{algorithm}
+    \SetKwData{in}{frame}\SetKwData{out}{amps\_complex}\SetKwData{framesize}{FRAME\_SIZE}\SetKwData{norms}{amps}\SetKwData{peaks}{peaks}\SetKwData{envelope}{envelope}\SetKwData{noteset}{noteset}
+    \SetKwFunction{fourier}{fourier}\SetKwFunction{getframe}{get\_frame}\SetKwFunction{applywindow}{apply\_window}\SetKwFunction{calcnorms}{calc\_norms}\SetKwFunction{calcenvelope}{calc\_envelope}\SetKwFunction{pickpeaks}{pick\_peaks}\SetKwFunction{createnoteset}{create\_noteset}\SetKwData{monophonic}{monophonic}\SetKwData{print}{print}\SetKwFunction{getlikeliestnote}{get\_likeliest\_note}\SetKwData{printvec}{print\_array}\SetKwFunction{getlikelynotes}{get\_likely\_notes}
+
+    \SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
+    \SetKwComment{Comment}{ //}{}
+
+    \Input{Samples from audio driver}
+    \Output{Estimation on played note(s)}
+    \BlankLine
+
+    \in $\leftarrow$ \getframe{}\;
+    \out $\leftarrow$ \fourier{\applywindow{\in}}\;
+    \norms $\leftarrow$ \calcnorms{\out}\;
+    \envelope $\leftarrow$ \calcenvelope{\norms}\;
+    \peaks $\leftarrow$ \pickpeaks{\envelope}\;
+    \noteset $\leftarrow$ \createnoteset{\norms, \peaks}\;
+
+    \eIf{monophonic} {
+        \print{\noteset.\getlikeliestnote{}}\;
+    } {
+        \printvec{\noteset.\getlikelynotes{}}\;
+    }
+
+    \BlankLine
+    \caption{Main transcription loop.}
+    \label{alg:overview}
+\end{algorithm}%\DecMargin{1em}

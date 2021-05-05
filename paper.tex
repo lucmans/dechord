@@ -1,3 +1,6 @@
+% Pseudo-code
+% Contributie exacter verwoorden (abstract en einde introduction)
+
 \documentclass[10pt,twocolumn]{article}
 
 % \frenchspacing
@@ -14,6 +17,7 @@
 \usepackage{xcolor}
 \usepackage{hyperref}
 \usepackage{float}
+\usepackage[linesnumbered,lined,commentsnumbered]{algorithm2e}
 
 % Better vspace in enumerate/itemize
 \usepackage{enumitem}
@@ -99,6 +103,9 @@ There are many parameters which change the behaviour of the overall system. For 
 
 By default, the program assumes an $A_4$ of 440 Hz. This can also be edited in \texttt{config.h}. Only 12 tone equal temperament (12-TET) tuning is currently supported. It could easily be changed to n-TET tuning, but non TET tuning is not easily supported.
 
+An pseudo-code overview of the transcription process is given in Algorithm~\ref{alg:overview}.
+\input{overview.pc}
+
 \subsection{Transform to frequency domain}  \label{sub:four}
 Our program uses the Fourier transform to obtain the frequency domain representation. We choose this transform as FFTW provides a very fast implementation. This speed is necessary for the real-time constrains on our system.
 
@@ -106,10 +113,14 @@ The resolution of the Fourier transform is dependent on the number of samples in
 
 Before applying the transform, a window function is often applied to minimize the artifacts produced by the transform. In this paper, we mainly use the Blackman-Nuttall window, but the following windows are also provided: Hamming window, Hann window, Blackman window, Nuttall window, Blackman-Harris window, Flat top window. Other window functions can easily be added.
 
+Because our input data is purely real, we know the output of the Fourier transform will be symmetric. For this reason, we can omit calculation half of the output. This results in an almost two times speed-up\cite{twotimes}.
+
 \subsection{Peak picking} \label{sub:peak}
 Three different peak picking algorithms have been implemented. The first picks every local maximum (every \texttt{i} where \texttt{data[i - 1] < data[i] \&\& data[i] > data[i + 1]}). This approach finds too many peaks, especially in noise. The other two algorithms pick peaks based on a Gaussian average envelope. One algorithm picks all peaks which are above this average and the other only picks the highest peak for each spectral lobe above this average. Only picking the highest peak seemed to restrictive in testing, however, it is better resilient against noise and may be used with more careful parameter optimisation. By using the envelope, we effectively filter small local maxima close to large local maxima.
 
-The Gaussian average envelope is calculated for every Fourier bin $i$ by taking the weighted average of a arbitrary number of bins around $i$. The weights are determined by a Gaussian function ($e^{-\pi(\frac{x}{\sigma})^2}$). The value of $\sigma$ and number of bins around $i$ can be changed in \texttt{config.h}. Higher values for $\sigma$ makes points around the considered point have a higher weighting. In our implementation, $\sigma$ is set to 1.2 and the number of bins is set to 47.
+The Gaussian average envelope is calculated for every Fourier bin $i$ by taking the weighted average of a arbitrary number of bins around $i$. The weights are determined by a Gaussian function ($e^{-\pi(\frac{x}{\sigma})^2}$). The value of $\sigma$ and number of bins around $i$ can be changed in \texttt{config.h}. Higher values for $\sigma$ makes points around the considered point have a higher weighting. In our implementation, $\sigma$ is set to 1.2 and the number of bins is set to 47. In Algorithm~\ref{alg:gauss} and~\ref{alg:env}, a pseudo-code implementation is given for calculating the Gaussian weights and calculating the envelope based on these weights.
+\input{gauss.pc}
+\input{env.pc}
 
 Even though this envelope works well for parts of the spectrum with peaks, it will still find peaks in noisy areas without peaks. This can be prevented in two ways. The first is setting a threshold which a peak has to exceed. This will result in less sustain, but works well. Secondly, we know that peaks outside the frequency range of a guitar cannot be a fundamental frequency. We can discard peaks lower than the lowest note, but peaks higher than the highest note still provide us information as it might be an overtone.
 
