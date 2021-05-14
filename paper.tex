@@ -36,21 +36,30 @@
 %\tableofcontents
 
 
+% Real-time too slow claim
+% Why Fourier and not other transforms
+% More specific about contributions and goals
 \section*{Abstract}
-In this paper, we explore real-time transcription of a electric guitar signal. Data driven methods are not fast enough for real-time use, so we focus on Fourier transform based methods. We will provide a basis for monophonic transcription and a proof-of-concept algorithm for polyphonic transcription. The goal of this paper is to give an overview of the problems when trying to solve this problem and to provide an implementation in which different methods can be tested.
+In this paper, we explore real-time transcription of a electric guitar signal. We focus on Fourier transform based methods, as this transform can be performed very fast. Using the obtained frequency domain, we select significant peaks using a Gaussian envelope. These peaks contain many overtones, which are filtered using our overtone sieve algorithm.
+
+We will provide a basis for monophonic transcription and a proof-of-concept algorithm for polyphonic transcription. The goal of this paper is to give an overview of the problems when trying to solve this problem and to provide an implementation in which different methods can be tested.
 % In the field of automatic music transcription (AMT), data driven methods such as artificial intelligence and machine learning are becoming more popular by the year. This is especially true for multi-pitch estimation (also known as multiple $f_0$ estimation). Even though the results are getting better every year, little understanding of the problem is gained. The few papers which use mathematical models to solve this problem, do not publish their code which makes it difficult to build upon.
 
 % In this paper, we will present an extensible pitch estimation system along with a harmonic sieve algorithm which can perform basic multi-pitch estimation. This system can be used as basis for further research of the individual components.
 
 
+% Simple -> specific
+% Might not outperform -> positiever verwoorden (kan gewoon gebruikt worden)
+% Ipv speculatief (kan alles of niks/misschien), gewoon aangeven wat het wel of niet kan
+% benadrukken dat er weinig nieuws is, maar combinatie is van bestaande dingen
 \section{Introduction}
 Automatic Music Transcription (AMT) is a field of study which tries to convert acoustic recordings into some form of (digital) music notation~\cite{survey1}. This task can be divided into two subproblems: pitch estimation and onset detection~\cite{survey2}. Instead of trying to convert a song into music notation, this paper will focus on translating a guitar signal into a set of played notes in real-time. This problem is very similar to AMT, as both require pitch estimation and onset/offset detection, however, we also have take latency into account.
 
-Single pitch estimation can be accurately performed using simple mathematical models~\cite{mono}. Multi pitch estimation is much harder as harmonic overtones are difficult to differentiate from the fundamental frequency~\cite{oud}. Because of this, most recent methods use machine learning or artificial intelligence. These methods are not well suited for real-time transcription. Also, no actual (mathematical) understanding of the problem is gained. Because of this, this paper will focus on mathematically solving this problem. Even if the methods researched in this paper might not outperform ML/AI solutions by themselves, they could be used to filter the input data for the ML/AI approaches. This might in turn improve the results of the AI/ML methods significantly.
+Single pitch estimation can be accurately performed using simple mathematical models~\cite{mono}. Multi pitch estimation is much harder as harmonic overtones are difficult to differentiate from the fundamental frequency~\cite{oud}. Because of this, most recent methods use machine learning or artificial intelligence. These methods are not well suited for real-time transcription. Also, little mathematical understanding of the problem is gained. Because of this, this paper will focus on mathematically solving this problem. Even if the methods researched in this paper might not outperform ML/AI solutions by themselves, they could be used to filter the input data for the ML/AI approaches. This might in turn improve the results of the AI/ML methods significantly.
 
-Pitch estimation can be divided into a few subproblems. If a paper focusses on one of these subproblems, it also has to solve the other subproblems in order to test the system. Most papers do not publish their source code, which makes building upon other's work difficult. It also limits the research of the interaction between different solutions for the different subproblems. Because of this, we provide a framework in which can be built upon, as the implementation of a subproblem can easily be interchanged with another. The code can be found at "\url{github.com/lucmans/dechord}".
+Pitch estimation can be divided into a few subproblems. If a paper focuses on one of these subproblems, it also has to solve the other subproblems in order to test the system. Most papers do not publish their source code, which makes building upon other's work difficult. It also limits the research of the interaction between different solutions for the different subproblems. Because of this, we provide a framework in which can be built upon, as the implementation of a subproblem can easily be interchanged with another. The code can be found at "\url{github.com/lucmans/dechord}".
 
-The goal of this paper is to give an overview of the problems when trying to solve this problem. This is done by developing a program which can translate a guitar signal to a set of observed notes in real-time. We also provide an algorithm which can estimate a set of played notes using the set of observed notes. The code should be publically available and easily extensible so others can optimize a subproblem without having to solve the other subproblems.
+The goal of this paper is to give an overview of the problems when trying to solve this problem. This is done by developing a program which can translate a guitar signal to a set of observed notes in real-time. We also provide an algorithm which can estimate a set of played notes using the set of observed notes. The code should be publicly available and easily extensible so others can optimize a subproblem without having to solve the other subproblems.
 
 Note that this paper is a preliminary paper for a possible master thesis. The focus is on building a prototype which can perform monophonic AMT and presenting a first draft of a polyphonic version. Using this information, we will estimate if the thesis project is feasible.
 

@@ -7,7 +7,7 @@
     \SetKwComment{Comment}{ //}{}
 
     \Input{Samples from audio driver}
-    \Output{Estimation on played note(s)}
+    \Output{Estimation of played note(s)}
     \BlankLine
 
     \in $\leftarrow$ \getframe{}\;
