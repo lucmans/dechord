@@ -1,7 +1,7 @@
 % \IncMargin{1em}
 \begin{algorithm}
-    \SetKwData{in}{frame}
-    \SetKwFunction{kw}{kernel\_width}\SetKwFunction{gaussian}{gaussian}\SetKwFunction{mid}{mid}%\SetKwFunction{mid}{mid}
+    \SetKwData{in}{frame}\SetKwData{kw}{kernel\_width}\SetKwData{gaussian}{gaussian}\SetKwData{mid}{mid}
+    \SetKwFunction{floor}{floor}
     \SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
     \SetKwComment{Comment}{ //}{}
 
@@ -10,9 +10,11 @@
     \BlankLine
 
     \Comment{\kw has to be odd}
-    \mid = \kw \ / 2\;
+    \mid $\leftarrow$ \floor{\kw \ / 2}\;
+    \BlankLine
+
     \For{$i\leftarrow 0$ \KwTo \kw} {
-        gaussian[$i$] = $e^{-\pi * (\frac{i - \mid}{\sigma * \mid})^2}$\;
+        gaussian[$i$] $\leftarrow$ $e^{-\pi * (\frac{i - \mid}{\sigma * \mid})^2}$\;
     }
 
     \BlankLine

@@ -1,0 +1,38 @@
+% \IncMargin{1em}
+\begin{algorithm*}
+    \SetKwData{in}{frame}\SetKwData{peaks}{peaks}\SetKwData{norms}{norms}\SetKwData{weights}{weights}\SetKwData{mid}{mid}\SetKwData{envelope}{envelope}\SetKwData{thres}{threshold}\SetKwData{highest}{highest}
+    \SetKwFunction{fs}{frame\_size}\SetKwFunction{calcgaussian}{calc\_gaussian}\SetKwFunction{mid}{mid}\SetKwFunction{floor}{floor}%\SetKwFunction{mid}{mid}
+    \SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
+    \SetKwComment{Comment}{ //}{}
+
+    \Input{Norms of the Fourier transform output and signal envelope}
+    \Output{List of peak locations}
+    \BlankLine
+
+    \peaks $\leftarrow$ \{\}\;
+    \highest $\leftarrow -1$\;
+
+    \BlankLine
+
+    \For{$i\leftarrow 1$ \KwTo $\fs / 2$} {
+        \uIf{\norms$[i - 1]$ $<$ \norms$[i]$ $\land$ \norms$[i]$ $>$ \norms$[i + 1]$\\
+                \hspace{+8mm} $\land$ \norms$[i]$ $>$ \envelope$[i]$\\
+                \hspace{+8mm} $\land$ \norms$[i]$ $>$ \thres} {
+            \uIf{\highest $= -1$} {
+                \highest $\leftarrow$ $i$\;
+            } \uElseIf{\norms$[highest]$ $<$ \norms$[i]$} {
+                \highest $\leftarrow$ $i$\;
+            }
+        } \uElseIf{\norms$[i]$ $<=$ \envelope$[i]$} {
+            \peaks $\leftarrow$ \peaks $\cup$ \{$i$\}\;
+            \highest $\leftarrow$ -1\;
+        }
+    }
+    \BlankLine
+
+    \Return \peaks\;
+
+    \BlankLine
+    \caption{Peak picking using the Gaussian envelope, where only one peak is picked every time a lobe surpasses the envelope.}
+    \label{alg:peak2}
+\end{algorithm*}%\DecMargin{1em}

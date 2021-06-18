@@ -1,0 +1,51 @@
+% \IncMargin{1em}
+\begin{algorithm*}
+    \SetKwData{nnotes}{n\_notes}\SetKwData{notes}{notes}\SetKwData{nharmonics}{n\_harmonics}\SetKwData{maxidx}{max\_idx}\SetKwData{overtone}{overtone}\SetKwData{frequency}{frequency}\SetKwData{harmonic}{harmonic\_overtone}\SetKwData{error}{error}\SetKwData{errorthres}{error\_threshold}
+    \SetKwFunction{loggg}{log2}\SetKwFunction{round}{round}\SetKwFunction{size}{size}
+    \SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
+    \SetKwComment{Comment}{ //}{}
+
+    \Input{Set of notes (sorted on frequency)}
+    \Output{Likeliest played note}
+    \BlankLine
+
+    \nnotes $\leftarrow$ \notes.\size{}\;
+    \BlankLine
+
+    \If{\nnotes == 0} {
+        \Return\;
+    }
+    \BlankLine
+
+    \Comment{Array is initialized with zeros}
+    \nharmonics$[\nnotes]$ $\leftarrow \{\}$ \;
+    \BlankLine
+
+    \For{$i\leftarrow 0$ \KwTo \nnotes} {
+        \For{$j\leftarrow i+1$ \KwTo \nnotes} {
+            %\overtone $\leftarrow$ \notes$[j]$.\frequency\;
+            \harmonic $\leftarrow \notes[i]$ * \round{$\notes[j]$.\frequency \ / $\notes[i]$.\frequency}\;
+            \error $\leftarrow$ 1200 * \loggg{$\notes[j]$.\frequency \ / \harmonic}\;
+            \BlankLine
+
+            \If{\error $>$ -errorthres $\land$ \error $<$ errorthres} {
+                $\nharmonics[i] \leftarrow \nharmonics[i] + 1$\;
+            }
+        }
+    }
+    \BlankLine
+
+    maxidx $\leftarrow$ 0\;
+    \For{$i\leftarrow 0$ \KwTo \nnotes} {
+        \If{$\nharmonics[i] > \nharmonics[\maxidx]$} {
+            \maxidx $\leftarrow i$\;
+        }
+    }
+    \BlankLine
+
+    \Return $\notes[\maxidx]$\;
+
+    \BlankLine
+    \caption{Monophonic transcription.}
+    \label{alg:mono}
+\end{algorithm*}%\DecMargin{1em}

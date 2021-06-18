@@ -10,13 +10,19 @@
     \Output{Estimation of played note(s)}
     \BlankLine
 
+    \Comment{Obtain frequency domain}
     \in $\leftarrow$ \getframe{}\;
     \out $\leftarrow$ \fourier{\applywindow{\in}}\;
     \norms $\leftarrow$ \calcnorms{\out}\;
+    \BlankLine
+
+    \Comment{Peak picking}
     \envelope $\leftarrow$ \calcenvelope{\norms}\;
     \peaks $\leftarrow$ \pickpeaks{\envelope}\;
-    \noteset $\leftarrow$ \createnoteset{\norms, \peaks}\;
+    \BlankLine
 
+    \Comment{Harmonic overtone sieve}
+    \noteset $\leftarrow$ \createnoteset{\norms, \peaks}\;
     \eIf{monophonic} {
         \print{\noteset.\getlikeliestnote{}}\;
     } {

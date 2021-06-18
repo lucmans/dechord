@@ -1,0 +1,50 @@
+% \IncMargin{1em}
+\begin{algorithm*}
+    \SetKwData{nnotes}{n\_notes}\SetKwData{notes}{notes}\SetKwData{explained}{explained}\SetKwData{maxidx}{max\_idx}\SetKwData{overtone}{overtone}\SetKwData{frequency}{frequency}\SetKwData{harmonic}{harmonic\_overtone}\SetKwData{error}{error}\SetKwData{errorthres}{error\_threshold}\SetKwData{output}{output}
+    \SetKwFunction{loggg}{log2}\SetKwFunction{round}{round}\SetKwFunction{size}{size}
+    \SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
+    \SetKwComment{Comment}{ //}{}
+
+    \Input{Set of notes (sorted on frequency)}
+    \Output{Set of likely notes}
+    \BlankLine
+
+    \output $\leftarrow \{\}$\;
+    \nnotes $\leftarrow$ \notes.\size{}\;
+    \BlankLine
+
+    \If{\nnotes == 0} {
+        \Return\;
+    }
+    \BlankLine
+
+    \Comment{Array is initialized with false}
+    \explained$[\nnotes]$ $\leftarrow \{\}$ \;
+    \BlankLine
+
+    \For{$i\leftarrow 0$ \KwTo \nnotes} {
+        \For{$j\leftarrow i+1$ \KwTo \nnotes} {
+            \harmonic $\leftarrow \notes[i]$ * \round{$\notes[j]$.\frequency \ / $\notes[i]$.\frequency}\;
+            \error $\leftarrow$ 1200 * \loggg{$\notes[j]$.\frequency \ / \harmonic}\;
+            \BlankLine
+
+            \If{\error $>$ -errorthres $\land$ \error $<$ errorthres} {
+                $\explained[i] \leftarrow$ true\;
+            }
+        }
+    }
+    \BlankLine
+
+    \For{$i\leftarrow 0$ \KwTo \nnotes} {
+        \If{$\lnot \explained[i]$} {
+            \output $\leftarrow$ \output $\cup$ $\notes[i]$\;
+        }
+    }
+    \BlankLine
+
+    \Return \output\;
+
+    \BlankLine
+    \caption{Polyphonic transcription.}
+    \label{alg:poly}
+\end{algorithm*}%\DecMargin{1em}
