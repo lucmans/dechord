@@ -1,25 +1,4 @@
 
-% Vragen aan Erwin
-%        - Algemeen: Ik zie vaak dat je een uitleg verwacht eerder dan wanneer ik het zelf zou verwachten. In de intro/related work geef ik alleen een overview, later defineer je echt alles. Als je dit niet doet wordt je intro zo lang en technisch, wat mogelijk lezers afschrikt.
-% Intro:
-%        - Eerste alinea verwoord, beter zo?
-%        - "is well suited for real-time transcrption". De intro lijkt mij niet de plek om hier heel uitgebreid op in te gaan, dat gebeurd ook later in de paper.
-%        - "Most papers do not publish their source code, which makes building upon other's work difficult". Als een paper de methode "mathematically defined", betekend het niet dat het mogelijk is om erop verder te bouwen. De meeste papers zijn erg slordig in hun wiskunde noteren en het is ook niet altijd voor iedereen te begrijpen. Vaak missen er ook belangrijke details om iets net zo goed na te maken. Maar dit zijn slechts mogelijke verklaringen, in het veld zie ik verrassend weinig mensen op elkaars werk doorbouwen en zie ik veel mensen het wiel opnieuw uitvinden, wat duidelijk een probleem aantoont.
-%        - Wat bedoel je precies met de real-time in quotes?
-% Related work:
-%        - Zijn de statements aan het einde van "related work" beter zo? (minder ad hoc)?
-% Preliminaries:
-%        - "You describe it as if this always happens...". Dat is toch ook zo?
-% 5.1: Programming choises in different section. Dan wordt dit een sectie van 2 regels. Is het dan niet handiger om het gewoon in de corresponderende subsectie van implentation te laten?
-
-% Antwoorden op jouw vragen
-%       "experiment if Fourier methods are feasible for real-time transcription"->"is dat niet al gedaan?". Nee, in ieder geval niet praktisch. Er zijn een hoop papers die er een mening over hebben, maar weinig echte polyphone AMT systemen.
-%       "accurately interpolate"->"estimate?". We interpoleren echt tussen 3 frequency bins. De hoogte van de frequency bins zouden eerder estimates zijn.
-%       "such as the constant Q tranform"->"Why not use this tranform then?". Dit beschrijf ik als het goed is in de paper, maar omdat de Fourier erg snel is en veel onderzocht is.
-%       "can be detected using another Fourier transform"->"what do you mean? explain". Voor nu iets anders verwoord, maar is het idee niet dat als je daar meer over wilt weten, je naar de referentie gaat?
-%       Er missen bij veel referenties journal verwijzingen. In deze gevallen is het niet te vinden. Ik weet hier ook niet of het gewoon direct door een universiteit is uitgebracht of wat.
-% 6.1: "Can the recordings not be improved?". Dat is een beetje vals spelen. Als ik dat zou doen, zou ik gewoon net zo lang kunnen blijven recorden totdat ik op zo'n manier speel dat het systeem 100% haalt.
-
 \documentclass[10pt,twocolumn]{article}
 
 % \frenchspacing
@@ -56,7 +35,7 @@
 
 
 \section*{Abstract}
-In this paper, we explore real-time transcription of an electric guitar signal. We focus on Fourier transform based methods, as this transform can be performed very fast. Using the obtained frequency domain, we select significant peaks using a Gaussian envelope. These peaks contain many overtones, which are filtered using our overtone sieve algorithm.
+In this paper, we explore real-time transcription of an electric guitar signal. We focus on Fourier transform based methods, as this transform can be performed very efficiently compared to other viable methods. Using the obtained frequency domain, we select significant peaks using a Gaussian envelope. These peaks contain many overtones, which are filtered using our overtone sieve algorithm.
 
 The goal of this paper is to develop a framework for monophonic transcription and a proof-of-concept algorithm for polyphonic transcription. This framework is built combining work from multiple other studies. Using this framework, we can evaluate if Fourier based methods are feasible transcribing a guitar within our real-time constraint of 6 milliseconds.
 
@@ -81,9 +60,9 @@ The focus of this paper is on building a prototype which can perform monophonic 
 
 
 \section{Related work}
-Spectral peak picking based AMT methods are often deemed infeasible for real-time AMT~\cite{hater}, due to the relatively low resolution in the low frequencies when using the Fourier transform~\cite{theoretisch}. This problem cannot be alleviated by zero-padding the Fourier transform input, as it does not add any information, it merely increases the resolution by interpolation~\cite{infomax}\cite{infomax2} and increases the computing time of the transform~\cite{boek}. However, using quadratic interpolation, we can very accurately interpolate peaks within Fourier frequency bins~\cite{interpol}. Also, other transforms such as the constant Q transform~\cite{cqt} which do provide more resolution in lower frequencies are getting more popular, which will allow us to differentiate two notes on a very small interval.
+Spectral peak picking based AMT methods are often deemed infeasible for real-time AMT~\cite{hater}, due to the relatively low resolution in the low frequencies when using the Fourier transform~\cite{theoretisch}. This problem cannot be alleviated by zero-padding the Fourier transform input, as it does not add any information, it merely increases the resolution by interpolation~\cite{infomax}\cite{infomax2} and increases the computing time of the transform~\cite{boek}. However, using quadratic interpolation, we can very accurately estimate peaks within Fourier frequency bins~\cite{interpol}. Also, other transforms such as the constant Q transform~\cite{cqt} which do provide more resolution in lower frequencies are getting more popular, which will allow us to differentiate two notes on a very small interval.
 
-A big problem in polyphonic pitch estimation is the occurrence of overtones~\cite{oud}. As these overtones also have a periodic nature, they can be detected using another Fourier transform~\cite{double} on the obtained frequency domain. However, this periodicity also be detected with less overhead using note sets, which are explained in Section~\ref{sec:noteset_intro}. Notes which are at octave intervals have the same periodicity~\cite{octave}, which makes them difficult to distinguish. This is often referred to as the octave problem.
+A big problem in polyphonic pitch estimation is the occurrence of overtones~\cite{oud}. As these overtones also have a periodic nature, they can be detected using a subsequent application of Fourier transform~\cite{double} on the obtained frequency domain. However, this periodicity also be detected with less overhead using note sets, which are explained in Section~\ref{sec:noteset_intro}. Notes which are at octave intervals have the same periodicity~\cite{octave}, which makes them difficult to distinguish. This is often referred to as the octave problem.
 
 Another problem is choosing the real-time constraint for processing the input. Some papers claim 140 ms is sufficient~\cite{sloomboi}. This is however too long, considering it would be about a note difference when playing eight notes in 200 BPM. Furthermore, there always is a latency from the operating system due to how audio drivers work~\cite{os}.  % In practice, musicians often tweak their audio driver settings in order to gain 5 to 10 ms in latency, which makes the difference between being able to play faster pieces or not.
 
@@ -93,13 +72,15 @@ When focussing on transcribing a guitar, we can use physical limitations of the 
 \section{Preliminaries}
 In this paper, we use the Fourier transform to obtain a frequency domain representation of a signal. This transform takes a frame full of samples and produces a list of amplitudes corresponding to frequency bins. When performing the Fourier transform on a frame, spectral leakage is introduced~\cite{spectral}. This kind of noise is remedied by applying a window function to a frame. %How this is done is described in Section~\ref{sub:four}.
 
-When playing a note on an instrument, multiple frequencies are produced. The most notable is the fundamental frequency. Every note corresponds to one fundamental frequency. Integer multiples of the fundamental frequency resonate and produce harmonic overtones~\cite{overtones}. They are called harmonic overtones, as they are exact integer multiples and do not produce destructive interference among each other. Every integer multiple resonates with the fundamental frequency, however, each subsequent overtone is of lower amplitude.  % For instance, the fundamental frequency of the $\text{A}_4$ is 440 Hz.
+When playing a note on an instrument, multiple frequencies are produced. The most notable is the fundamental frequency. Every note corresponds to one fundamental frequency. In theory, integer multiples of the fundamental frequency resonate and produce harmonic overtones~\cite{overtones}. They are called harmonic overtones, as they are exact integer multiples and do not produce destructive interference among each other. Every integer multiple resonates with the fundamental frequency, however, each subsequent overtone is of lower amplitude. In practice, the overtones are not exact integer multiples due to non linear effects, however, they are of lower order and can be disregarded.  % For instance, the fundamental frequency of the $\text{A}_4$ is 440 Hz.
 
 Generally, instruments do not produce perfect sine waves. The specific distortion of an instrument is called its timbre~\cite{timbre}. Even though the frequency components of these distortions are insignificant compared to the fundamental frequency and its overtones, it still results in extra noise in the signal. When strumming a note on the guitar, there is a strong attack. During this attack, the signal behaves chaotically and results in many fluctuating peaks in the frequency domain. This phenomenon is called a transient.
 
 To specify in what octave a certain note lies, we use scientific note notation. This adds a subscript octave number to a note name. In scientific notation, we start from the note C. In other words, these notes are denoted in increasing pitch: $\text{C}_3$, $\text{A}_3$ and $\text{C}_4$. Note that $\text{A}_3$ is higher pitches than $\text{C}_3$, which is counter intuitive.
 
 Most modern instruments use the twelve-tone equal temperament tuning system (12-TET). This tuning system divides an octave, which the distance between a frequency and its double, into twelve equal parts on the logarithmic scale. In other words, the ratio between two contiguous notes is $\sqrt[12]{2}$. The distance between two notes can further be divided on a logarithmic scale into 100 cents. The number of cents between two frequencies can be calculated as $1200 * \log_2(\frac{f_1}{f_2})$. 12-TET is tuned relative to a standard pitch. In modern music, we define the $\text{A}_4$ to be 440 Hz.
+
+When we refer to real-time in this paper, we use the definition where a system has finish computations within and produce an answer within a real-time constraint. In this paper, we choose a constraint of 6 milliseconds. We elaborate on that decision in Section~\ref{sec:lat}.
 
 
 \section{Pitch estimation}
@@ -121,15 +102,16 @@ Then, with the signal $s(n)$ and the window $w(n)$, we can obtain the resulting 
     $\text{res}(n) = s(n) * w(n)$
 \end{center}
 Figure~\ref{fig:spec} shows the effect of a window function on a frame graphically.
+
+The output of a Fourier transform is a list of complex number. The norm of each complex number corresponds to the amplitude of a certain frequency bin.
 \begin{figure}[H]%\vspace{-2mm}
     \centering
     \includegraphics[width=\linewidth]{3.png} %0.85
     \caption{The effect of applying a window function to a signal}
     \label{fig:spec}
 \end{figure}%\vspace{-4mm}
+\noindent The size of these frequency bins $f_{\text{bin}}$ is determined by the sampling rate $f_{\text{SR}}$ of the signal (samples per second) and the number of samples in a frame SPF with the following relation:
 %In polyphonic signals, harmonic overtones of different notes can interfere, which will lead to inconsistent and oscillating peaks.  % TODO: Maybe make preliminary section about overtone dissonance
-
-The output of a Fourier transform is a list of complex number. The norm of each complex number corresponds to the amplitude of a certain frequency bin. The size of these frequency bins $f_{\text{bin}}$ is determined by the sampling rate $f_{\text{SR}}$ of the signal (samples per second) and the number of samples in a frame SPF with the following relation:
 \begin{center}
     $f_{\text{bin}} = \frac{f_{\text{SR}}}{\text{SPF}}$
 \end{center}
@@ -254,7 +236,7 @@ As mentioned before, the resolution of the Fourier transform depends two paramet
 
 Before applying the transform, a window function is applied to minimize the artifacts produced by the transform. The following windows are also provided: Hamming window, Hann window, Blackman window, Nuttall window, Blackman-Harris window, Blackman-Nuttall window, Flat top window. Other window functions can easily be added.
 
-Because our input data is purely real, we know the output of the Fourier transform will be symmetric. For this reason, we can omit calculation half of the output. This results in an almost two times speed-up~\cite{twotimes}.
+Note that our input data is purely real, we know the output of the Fourier transform will be symmetric. For this reason, we can omit calculation half of the output. This results in an almost two times speed-up~\cite{twotimes}.
 
 \subsection{Peak picking} \label{sub:peak}
 Three different peak picking algorithms have been implemented. The main algorithm is based on the Gaussian envelope. First, the relevant points on the Gaussian function are calculated and stored in an array. Normally, at least as many values have to be precomputed as there are frequency bins. However, because values further in the tail are close to zero, we can omit calculating these values and subsequently skip calculation involving them in the Gaussian average, which serves as a slight optimization. Algorithm~\ref{alg:gauss} shows how the values on the Gaussian function are computed given a \texttt{kernel\_width}, which is the number of values we precompute.
@@ -272,11 +254,11 @@ The other method based on the Gaussian average envelope only select one peak eve
 \subsection{Harmonic overtone sieve}  \label{sub:impnoteset}
 An overview of the monophonic is given in Algorithm~\ref{alg:mono}. Here, we iterate over all found peaks and check if every higher peak can be an overtone of the considered peak. After counting the number of overtones for every peak, we can pick the peak with the most overtones.
 \input{mono.pc}
-
-Polyphonic note detection can use an algorithm similar to the monophonic algorithm. As the number of played notes is unknown in the polyphonic case, we have to determine if a note is a fundamental or overtone. As mentioned before, we cannot just set a threshold for the number of overtones a fundamental should have. To solve this problem, we present a harmonic overtone sieve algorithm. A pseudo-code implementation of this algorithm is shown in Algorithm~\ref{alg:poly}. Instead of directly looking for fundamentals, we try to sieve away all harmonics until we are left with fundamentals. We start at the lowest peak end mark all its possible overtones. If there are still unmarked peaks left, they are likely from another note and we sieve its overtones away. We can repeat this process until no more peaks can be sieved. Lastly, we can remove all peaks which are outside of the frequency range of a guitar. If two peaks are not distinguishable in the root notes but are distinguishable in the overtones, this algorithm will report the first distinguishable overtone as the root note. It is possible to calculate what the root note should have been, but that is outside the scope of this paper and will be further discussed in Section~\ref{sec:future}.
 \input{poly.pc}
 
-\subsection{Latency}
+Polyphonic note detection can use an algorithm similar to the monophonic algorithm. As the number of played notes is unknown in the polyphonic case, we have to determine if a note is a fundamental or overtone. As mentioned before, we cannot just set a threshold for the number of overtones a fundamental should have. To solve this problem, we present a harmonic overtone sieve algorithm. A pseudo-code implementation of this algorithm is shown in Algorithm~\ref{alg:poly}. Instead of directly looking for fundamentals, we try to sieve away all harmonics until we are left with fundamentals. We start at the lowest peak end mark all its possible overtones. If there are still unmarked peaks left, they are likely from another note and we sieve its overtones away. We can repeat this process until no more peaks can be sieved. Lastly, we can remove all peaks which are outside of the frequency range of a guitar. If two peaks are not distinguishable in the root notes but are distinguishable in the overtones, this algorithm will report the first distinguishable overtone as the root note. It is possible to calculate what the root note should have been, but that is outside the scope of this paper and will be further discussed in Section~\ref{sec:future}.
+
+\subsection{Latency}  \label{sec:lat}
 As stated before, our goal is to perform the transcription in real-time. We choose a constraint of 6 ms. Most musicians work with a driver latency of 9 to 11 ms. On a good computer, this latency can be reduced to 3-5 ms. We will use these 6 ms of latency difference to perform our calculations in. Note that when playing more notes per second, latency becomes more of a problem. On slower pieces, we can get away with much larger latencies. In order to test the impact of extra latency for yourself, we developed a tool which plays back the incoming audio signal with a user specifiable delay. This tool can be found under the "latency" branch in our GitHub repository. Note that this tool adds a latency on top of the audio driver latency like our program would. The total latency is much larger than the displayed latency.
 
 The latency of our system results from two different latencies, the time to fill a frame with samples and the frame processing time. Because our algorithm works on a "per frame" basis instead of a "per sample" basis, we have to wait until the audio driver has fetched enough samples for us to fill a frame. The time it takes to start analysing a frame after receiving the first sample of this frame can be calculated by dividing the number of samples per frame by the sample rate. This is equal to the length of a frame. In practical terms, it is the maximum latency on detecting a newly played note. The average latency is obtained by dividing this number by two.
@@ -321,7 +303,7 @@ To test the monophonic performance of our system, we first measure the performan
     \caption{Accuracy of monophonic $f_0$ estimation on C major scale at two notes per second for different starting positions. $a_\text{trans}$ is the accuracy without transient errors and $a_\text{oct}$ is without octave errors. $a_\text{adj}$ is the accuracy without both of these errors.}
     \label{tab:monperf}
 \end{table}\vspace{-3mm}
-We can see that the accuracy without transient errors is about 96\%. There are two outliers at $\text{C}_3$ and $\text{D}_3$, which are the cause of inconsistent quality in the recording of the scales. This shows us that the guitarist has to play carefully for the best results. Furthermore, we noticed that the first played note almost always has a transient error. This could be because we start playing from a silent signal instead of changing from a previous note. Also, the transient errors show up more often between lower frequency notes. Almost all octave errors are at note changes, so better transient filtering will also solve these cases. When accounting for these two kinds of errors, our system has a 100\% accuracy.
+The average accuracy without transient errors is 95.6\%. We noticed that the first played note almost always has a transient error. This could be because we start playing from a silent signal instead of changing from a previous note. Also, the transient errors show up more often between lower frequency notes. Almost all octave errors are at note changes, so better transient filtering will also solve these cases. When accounting for these two kinds of errors, our system has a 100\% accuracy.
 
 \subsection{Polyphonic performance: intervals}
 To test the polyphonic performance of our system, we let it determine the played notes in an interval. We play every interval within an octave to test if there are any problems with separating the notes in specific intervals. For instance, some interference may cause oscillating peaks in the frequency domain. Again, we try all the intervals at different root notes, as the pitch of the root note may make a big difference in performance. As we mentioned before, when two peaks are too close together, we cannot distinguish them. Often, the second note is distinguished an octave higher. In Tables~\ref{tab:polperf1}--\ref{tab:polperf3} is a summary of the results. Here, we list the number of semitones $n$ between the two notes in an interval, if both notes were correctly found. If not, we denote if the second note was detected an octave higher. This often happens, because we cannot distinguish two notes in small intervals at low pitches. The last column shows if there were other notes reported which were not transients.
@@ -337,11 +319,11 @@ In the tables, we can see that the algorithm performs well on higher pitched int
 The processing time of our system is very important, as it will directly impact the latency. We will only measure the time between receiving a frame from the audio driver until the answer is computed, as the time spent waiting on enough samples is fully determined by the number of samples in a frame and the sampling rate. The total processing time and the processing time of the individual steps and the total system can be seen in Figure~\ref{fig:snel}. Here, we only measure the latency on frames which contain peaks.
 
 The total latency is never higher than 360 microseconds. Given that a frame is 85 milliseconds, we are at least 235 times real-time. This is well within out real-time constraint if we disregard the latency to fill a frame. Surprisingly, the peak picking algorithm is more computationally intensive than the transform. Most of the time, the latency is on the lower end of the distribution. The outliers are mostly a result of transients. During transients, there are a lot more peaks to process, which slows down the different algorithms. This is especially the case for polyphonic transcription, as we have to take all the peaks into account. In the polyphonic dataset, transients contain more peaks as multiple strings are strummed. This results in a second lobe in the mid segment of the latency distribution.
-\begin{figure}[t]%\vspace{-2mm}
+\begin{figure}[h]%\vspace{-2mm}
     \centering
     \includegraphics[width=\linewidth]{1.png}\vspace{+6mm} %0.85
     \includegraphics[width=\linewidth]{2.png} %0.85
-    \caption{Processing time of the different algorithms. The bar shows the fastest and slowest measured time. The lobe shows the relative distribution of the measurements.}
+    \caption{Processing time of the different algorithms. The bar shows the fastest and slowest measured time. The width of a line shows the relative distribution of the measurements.}
     \label{fig:snel}
 \end{figure}%\vspace{-4mm}
 \begin{table}[H]%\vspace{-2mm}
