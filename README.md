@@ -23,11 +23,11 @@ There are two plotting modes, spectrogram plot and waterfall plot. You can switc
 When running the program with "-s", a sine wave is generated with 1000Hz. The frequency can be increased or decreased using the - and = (+ without shift) keys. The plot height/colors are relative to the highest measured amplitude. This value can be reset to 0 by pressing r inside the graphical interface.
 
 # Code structure
-    config.h: Contains all configuration globals (parameters), such as sampling rate and samples per Fourier transform frame.  
-    main.cpp: Initializes libraries and devices.  
-    transcribe.cpp: Contains the main transcription loop and user interaction code. Specific steps in the transcription process are split into their own files.  
-    graphics.cpp: Handles the window which can show a spectrogram and waterfall plot. In the spectrogram, green represents the detected frequencies, red the rolling Gaussian mean and in blue the peaks. In the waterfall plot, peaks are highlighted with a white filter.  
-    note_set.cpp: Makes sets of notes given the peak locations. It also needs the spectrogram for interpolation, which is done in this step instead of the peak picking step for efficiency. Based on the note sets, f0 estimation can be performed. Polyphony can be detected using "overtone sieves".  
-    find_peaks.cpp: Contains code for finding peaks in the spectrum, so also calculates the rolling Gaussian mean of a spectrum.  
-    music_file.cpp: Contains code for loading .wav files. Only supports 192kHz with float encoding, but could easily be extended to support 24bit int (see comments).  
-    gensound.cpp: Contains functions for generating test tones.
+`config.h`: Contains all configuration globals (parameters), such as sampling rate and samples per Fourier transform frame.  
+`main.cpp`: Initializes libraries and devices.  
+`transcribe.cpp`: Contains the main transcription loop and user interaction code. Specific steps in the transcription process are split into their own files.  
+`graphics.cpp`: Handles the window which can show a spectrogram and waterfall plot. In the spectrogram, green represents the detected frequencies, red the rolling Gaussian mean and in blue the peaks. In the waterfall plot, peaks are highlighted with a white filter.  
+`note_set.cpp`: Makes sets of notes given the peak locations. It also needs the spectrogram for interpolation, which is done in this step instead of the peak picking step for efficiency. Based on the note sets, f0 estimation can be performed. Polyphony can be detected using "overtone sieves".  
+`find_peaks.cpp`: Contains code for finding peaks in the spectrum, so also calculates the rolling Gaussian mean of a spectrum.  
+`music_file.cpp`: Contains code for loading .wav files. Only supports 192kHz with float encoding, but could easily be extended to support 24bit int (see comments).  
+`gensound.cpp`: Contains functions for generating test tones.
