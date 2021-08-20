@@ -14,7 +14,7 @@ Run from the command line in the root directory of the project:
 
 Information about CLI arguments can be obtained through ./dechord -h
 
-#Usage instructions
+# Usage instructions
 The application uses the terminal along with a graphical interface.  
 The terminal is only used for text output. At the start, information about the available audio drivers and interfaces will be printed. Also the requested audio setting and received settings from the driver are printed. Lastly, information about the Fourier transform will be printed to the screen. After this, real-time information on the current estimate are continuously printed.  
 The program can be closed by sending SIGINT to the terminal (ctrl+c) or pressing q/ESC in the graphical interface.  
@@ -22,7 +22,7 @@ You can switch between monophonic and polyphonic transcription by pressing "m" o
 There are two plotting modes, spectrogram plot and waterfall plot. You can switch between them using the "s" key in the GUI.  
 When running the program with "-s", a sine wave is generated with 1000Hz. The frequency can be increased or decreased using the - and = (+ without shift) keys. The plot height/colors are relative to the highest measured amplitude. This value can be reset to 0 by pressing r inside the graphical interface.
 
-#Code structure
+# Code structure
     config.h: Contains all configuration globals (parameters), such as sampling rate and samples per Fourier transform frame.  
     main.cpp: Initializes libraries and devices.  
     transcribe.cpp: Contains the main transcription loop and user interaction code. Specific steps in the transcription process are split into their own files.  
