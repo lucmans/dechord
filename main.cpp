@@ -121,7 +121,7 @@ void parse_args(int argc, char *argv[]) {
 
             i++;
         }
-        else if(strcmp(argv[i], "-h")) {
+        else if(strcmp(argv[i], "-hl") == 0) {
             settings.headless = true;
         }
         else if(strcmp(argv[i], "-o") == 0 && argc > i + 1) {

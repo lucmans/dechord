@@ -54,14 +54,14 @@ Note::Note(const double _freq, const double _amp) : freq(_freq), amp(_amp) {
     note = static_cast<Notes>(((int)round(fmod(12.0 * log2(_freq / A4), 12.0)) + 12) % 12);
     // note = ((int)round(fmod(12.0 * log2(_freq / A4), 12.0)) + 12) % 12;
 
+    const double tuned_freq = A4 * exp2(round(12.0 * log2(_freq / A4)) / 12.0);
+    error = 1200.0 * log2(_freq / tuned_freq);
+
     const double C1 = A4 * exp2(-45.0 / 12.0);
     octave = log2(_freq / C1) + 1;
     // Correct for notes slightly detuned below octave
-    if(note == Notes::C && abs(_freq - (C1 * exp2(octave - 1))) > 0.3 * _freq)
+    if(note == Notes::C && _freq < tuned_freq)
         octave++;
-
-    const double tuned_freq = A4 * exp2(round(12.0 * log2(freq / A4)) / 12.0);
-    error = 1200.0 * log2(_freq / tuned_freq);
 };
 
 Note::Note(const Notes _note, const int _octave) : note(_note), octave(_octave) {}
@@ -202,6 +202,7 @@ void NoteSet::get_likely_notes(std::vector<const Note*> &out) const {
             out.push_back(&notes[i]);
     }
 
+    // TODO
     // Subtract harmonics from signal and see if other harmonics are still left
     // Repeat till no peaks are left
 }

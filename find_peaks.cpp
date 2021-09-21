@@ -59,6 +59,25 @@ void envelope_peaks(const double norms[(FRAME_SIZE / 2) + 1], const double envel
 }
 
 void envelope_highest_peak(const double norms[(FRAME_SIZE / 2) + 1], const double envelope[(FRAME_SIZE / 2) + 1], std::vector<int> &peaks) {
+    // int highest = -1;
+
+    // for(int i = 1; i < (FRAME_SIZE / 2); i++) {
+    //     // Peak in envelope
+    //     if(norms[i - 1] < norms[i] && norms[i] > norms[i + 1]
+    //        && norms[i] > envelope[i]) {
+    //         if(highest == -1)
+    //             highest = i;
+    //         else if(norms[highest] < norms[i])
+    //             highest = i;
+    //     }
+
+    //     // If going under envelope again
+    //     else if(norms[i] <= envelope[i]) {
+    //         peaks.push_back(highest);
+    //         highest = -1;
+    //     }
+    // }
+
     bool envelope_entered = false;
     bool envelope_left = true;
 
