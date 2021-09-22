@@ -23,6 +23,7 @@ typedef std::chrono::duration<double, std::milli> duration_t;  // Omit ", std::m
 
 
 static int freq = 1000;
+static bool playback = false;
 void handle_input(Graphics *graphics, double &max_norm, bool &waterfall, bool &monophonic) {
     SDL_Event e;
     while(SDL_PollEvent(&e)) {
@@ -60,6 +61,10 @@ void handle_input(Graphics *graphics, double &max_norm, bool &waterfall, bool &m
 
                     case SDLK_p:
                         monophonic = false;
+                        break;
+
+                    case SDLK_k:
+                        playback = !playback;
                         break;
                 }
                 break;
@@ -227,6 +232,8 @@ void transcribe(SDL_AudioDeviceID &in_dev, Graphics *graphics, SDL_AudioDeviceID
     while(!poll_quit()) {
         // Fill input (window) with samples
         read_window(in_dev, in);
+        if(playback)
+            SDL_QueueAudio(out_dev, in, FRAME_SIZE * sizeof(float));
 
         start = std::chrono::steady_clock::now();
 
