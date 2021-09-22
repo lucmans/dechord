@@ -221,7 +221,7 @@ void transcribe(SDL_AudioDeviceID &in_dev, Graphics *graphics, SDL_AudioDeviceID
     reset_quit();
     double max_norm = 1.0;  // Used for coloring the graph
     bool waterfall = false;  // Plot waterfall or spectrogram
-    bool monophonic = false;  // Polyphonic or monophonic transcription
+    bool monophonic = true;  // Polyphonic or monophonic transcription
     SDL_PauseAudioDevice(in_dev, 0);  // Unpause device
     SDL_PauseAudioDevice(out_dev, 0);  // Unpause device
     while(!poll_quit()) {

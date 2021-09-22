@@ -63,12 +63,12 @@ void Graphics::add_line(const double data[(FRAME_SIZE / 2) + 1], const double ma
         pixels[i] = calc_color(data[i], max_value);
 
     // Color found peaks
-    for(unsigned int i = 0; i < peaks.size(); i++) {
-        if(peaks[i] >= n_data_points)
-            continue;
-        // pixels[peaks[i]] = 0xff00ffff;
-        pixels[peaks[i]] |= 0x7f7f7fff;
-    }
+    // for(unsigned int i = 0; i < peaks.size(); i++) {
+    //     if(peaks[i] >= n_data_points)
+    //         continue;
+    //     // pixels[peaks[i]] = 0xff00ffff;
+    //     pixels[peaks[i]] |= 0x7f7f7fff;
+    // }
     SDL_UnlockTexture(line);
 
     // Shift all lines one place down
