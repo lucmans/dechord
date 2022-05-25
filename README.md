@@ -1,4 +1,4 @@
-This project is here for archival purposes. See [Digistring][https://github.com/lucmans/digistring] for a better version.
+This project is here for archival purposes. See [Digistring](https://github.com/lucmans/digistring) for a better version.
 
 Note that this project is just a prototype. In the branch "paper", a report ("paper.pdf") can be found which explains what has been implemented and what has to be implemented for this program to actually perform real-time polyphonic guitar to MIDI translation.  
 
